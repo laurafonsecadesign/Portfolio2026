@@ -232,10 +232,63 @@
     dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
     dialog.addEventListener('close', () => { document.body.classList.remove('modal-open'); image.removeAttribute('src'); opener?.focus(); });
   }
+  // The About manifesto reveals its words gradually from light grey to black as it is scrolled.
+  // Splitting text nodes (including within <em>) preserves real text, italics and accessibility.
+  const manifesto = document.querySelector('.about-manifesto');
+  if (manifesto) {
+    function wrapInkWords(element) {
+      [...element.childNodes].forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const fragment = document.createDocumentFragment();
+          node.textContent.split(/(\s+)/).forEach(part => {
+            if (!part.trim()) {
+              fragment.append(document.createTextNode(part));
+            } else {
+              const word = document.createElement('span');
+              word.className = 'ink-word';
+              word.textContent = part;
+              fragment.append(word);
+            }
+          });
+          node.replaceWith(fragment);
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          wrapInkWords(node);
+        }
+      });
+    }
+    wrapInkWords(manifesto);
+    const inkWords = [...manifesto.querySelectorAll('.ink-word')];
+    let inkFrame = 0;
+    function paintInk() {
+      inkFrame = 0;
+      const enabled = !paused && !reduced.matches;
+      manifesto.classList.toggle('is-ink-ready', enabled);
+      if (!enabled) {
+        inkWords.forEach(word => word.style.removeProperty('color'));
+        return;
+      }
+      const rect = manifesto.getBoundingClientRect();
+      const distance = Math.max(320, innerHeight * .55 + rect.height * .68);
+      const progress = Math.max(0, Math.min(1, (innerHeight * .88 - rect.top) / distance));
+      const count = Math.max(1, inkWords.length - 1);
+      inkWords.forEach((word, index) => {
+        const local = Math.max(0, Math.min(1, (progress - index / count * .82) / .18));
+        const smooth = local * local * (3 - 2 * local);
+        const channel = Math.round(195 - 158 * smooth);
+        word.style.color = 'rgb(' + channel + ', ' + channel + ', ' + channel + ')';
+      });
+    }
+    const scheduleInk = () => { if (!inkFrame) inkFrame = requestAnimationFrame(paintInk); };
+    window.addEventListener('scroll', scheduleInk, {passive:true});
+    window.addEventListener('resize', scheduleInk, {passive:true});
+    document.addEventListener('portfolio:motion', scheduleInk);
+    paintInk();
+  }
+
   // Word-by-word heading entrances: keep clipping only during the reveal.
   // Once each title finishes animating, its masks become overflow-visible to
   // avoid cutting off glyphs, accents and tightly tracked display lettering.
-  const titles = [...document.querySelectorAll('.section-heading h2,.about h2,.contact-title h2,.project-heading h1,.next-project strong')];
+  const titles = [...document.querySelectorAll('.section-heading h2,.contact-title h2,.project-heading h1,.next-project strong')];
   if ('IntersectionObserver' in window) {
     function showTitle(title) {
       if (!title.classList.contains('title-waiting') || paused || reduced.matches) {
