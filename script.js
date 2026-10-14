@@ -125,11 +125,33 @@
     dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
     dialog.addEventListener('close', () => { document.body.classList.remove('modal-open'); image.removeAttribute('src'); opener?.focus(); });
   }
-  // Word-by-word heading entrances keep the underlying text accessible.
+  // Word-by-word heading entrances: keep clipping only during the reveal.
+  // Once each title finishes animating, its masks become overflow-visible to
+  // avoid cutting off glyphs, accents and tightly tracked display lettering.
   const titles = [...document.querySelectorAll('.section-heading h2,.about h2,.contact-title h2,.project-heading h1,.next-project strong')];
   if ('IntersectionObserver' in window) {
+    function showTitle(title) {
+      if (!title.classList.contains('title-waiting') || paused || reduced.matches) {
+        title.classList.remove('title-waiting');
+        title.classList.add('title-revealed');
+        return;
+      }
+      const pieces = title.querySelectorAll('.word-piece');
+      const last = pieces[pieces.length - 1];
+      const finish = () => {
+        title.classList.add('title-revealed');
+        last?.removeEventListener('transitionend', onFinish);
+      };
+      function onFinish(event) {
+        if (event.target === last && event.propertyName === 'transform') finish();
+      }
+      last?.addEventListener('transitionend', onFinish);
+      title.classList.remove('title-waiting');
+      // Fallback for browser-tab changes or disabled transitions.
+      window.setTimeout(finish, 1750);
+    }
     const titleObserver = new IntersectionObserver(entries => entries.forEach(entry => {
-      if (entry.isIntersecting) { entry.target.classList.remove('title-waiting'); titleObserver.unobserve(entry.target); }
+      if (entry.isIntersecting) { showTitle(entry.target); titleObserver.unobserve(entry.target); }
     }), {threshold:.12});
     titles.forEach(title => {
       let wordIndex = 0;
@@ -148,6 +170,7 @@
       });
       title.classList.add('motion-title');
       if (!paused && title.getBoundingClientRect().top > innerHeight) title.classList.add('title-waiting');
+      else title.classList.add('title-revealed');
       titleObserver.observe(title);
     });
   }
