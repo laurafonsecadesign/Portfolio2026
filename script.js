@@ -4,27 +4,16 @@
   const root = document.documentElement;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-  let savedMotion = null;
-  try { savedMotion = localStorage.getItem('lf-motion'); } catch (_) { /* Private mode */ }
-  let paused = savedMotion === 'paused' || reduced.matches;
-  const motionButton = document.querySelector('.motion-toggle');
+  // Animations run automatically, except when the visitor requests reduced motion.
+  let paused = reduced.matches;
   const animations = new Set();
   function applyMotion() {
     root.classList.toggle('motion-paused', paused);
     document.dispatchEvent(new Event('portfolio:motion'));
     document.querySelectorAll('img[data-animated]').forEach(img => { img.src = paused ? img.dataset.still : img.dataset.animated; });
-    if (motionButton) {
-      motionButton.setAttribute('aria-pressed', String(paused));
-      motionButton.textContent = paused ? motionButton.dataset.play : motionButton.dataset.pause;
-    }
     if (paused) { animations.forEach(a => a.cancel()); animations.clear(); }
   }
   applyMotion();
-  motionButton?.addEventListener('click', () => {
-    paused = !paused;
-    try { localStorage.setItem('lf-motion', paused ? 'paused' : 'playing'); } catch (_) {}
-    applyMotion();
-  });
   reduced.addEventListener('change', e => { paused = e.matches; applyMotion(); });
 
   // The language switch keeps the current section on the equivalent static page.
