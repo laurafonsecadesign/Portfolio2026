@@ -68,34 +68,152 @@
     document.querySelectorAll('main section[id]:not(#hero)').forEach(s => sections.observe(s));
   }
 
-  // Original portfolio's image-trail idea, with a bounded number of elements.
+  // A fluid, layered photo trail inspired by Yourwave.
+  // All tiles are decorative; links, scrolling and keyboard interactions stay native.
   const hero = document.querySelector('.hero');
   const trail = document.querySelector('.image-trail');
   if (hero && trail && typeof Element.prototype.animate === 'function') {
-    const sources = trail.dataset.images.split('|');
-    let last = {x:-1000,y:-1000,time:0}, index = 0;
-    hero.addEventListener('pointermove', e => {
-      if (paused || !finePointer.matches || e.target.closest('a,button') || document.hidden) return;
-      const now = performance.now();
-      if (now-last.time < 120 || Math.hypot(e.clientX-last.x,e.clientY-last.y) < 85) return;
-      last = {x:e.clientX,y:e.clientY,time:now};
-      if (trail.children.length >= 7) return;
-      const rect = hero.getBoundingClientRect();
-      const image = new Image(); image.className = 'trail-image'; image.alt = '';
-      image.src = sources[index++ % sources.length];
-      image.style.left = `${e.clientX-rect.left}px`; image.style.top = `${e.clientY-rect.top}px`;
+    const sources = (trail.dataset.images || '').split('|').filter(Boolean);
+    const active = new Set();
+    const step = 64;
+    const maxActive = 13;
+    const lifetime = 1550;
+    let lastSpawn = null;
+    let latest = null;
+    let imageIndex = 0;
+    let cacheReady = false;
+    const canTrail = () => !paused && !reduced.matches && finePointer.matches && !document.hidden;
+
+    function preloadTrail() {
+      if (cacheReady || !sources.length || !canTrail()) return;
+      cacheReady = true;
+      sources.forEach(src => { const img = new Image(); img.src = src; });
+    }
+
+    function clearTrail() {
+      lastSpawn = null;
+      latest = null;
+      for (const item of active) {
+        item.animation.cancel();
+        item.element.remove();
+      }
+      active.clear();
+    }
+
+    function spawnTrailImage(x, y, vx) {
+      if (!sources.length) return;
+      if (active.size >= maxActive) {
+        const oldest = active.values().next().value;
+        oldest.animation.cancel();
+        oldest.element.remove();
+        active.delete(oldest);
+      }
+
+      const image = new Image();
+      const sequence = imageIndex++;
+      const angle = Math.max(-11, Math.min(11, vx * 9)) + [-3, 2, 0, -2, 3][sequence % 5];
+      image.className = 'trail-image';
+      image.alt = '';
+      image.draggable = false;
+      image.decoding = 'async';
+      image.src = sources[sequence % sources.length];
+      image.style.left = x + 'px';
+      image.style.top = y + 'px';
+      image.style.zIndex = String(sequence + 1);
       trail.append(image);
-      const rotation = (index % 5 - 2) * 5;
+
+      const transformAt = (vertical, rotation, scale) =>
+        'translate(-50%, ' + vertical + ') rotate(' + rotation + 'deg) scale(' + scale + ')';
       const animation = image.animate([
-        {opacity:0,transform:`translate(-50%,-45%) rotate(${rotation}deg) scale(.8)`},
-        {opacity:1,transform:`translate(-50%,-50%) rotate(${rotation}deg) scale(1)`,offset:.15},
-        {opacity:1,transform:`translate(-50%,-50%) rotate(${rotation}deg) scale(1)`,offset:.6},
-        {opacity:0,transform:`translate(-50%,-65%) rotate(${rotation}deg) scale(.92)`}
-      ],{duration:1100,easing:'cubic-bezier(.22,1,.36,1)'});
-      animations.add(animation);
-      const cleanup = () => { image.remove(); animations.delete(animation); };
-      animation.onfinish = cleanup; animation.oncancel = cleanup;
+        {
+          opacity: 0,
+          transform: transformAt('-43%', angle - 4, .78),
+          offset: 0,
+          easing: 'cubic-bezier(.22, 1, .36, 1)'
+        },
+        {
+          opacity: 1,
+          transform: transformAt('-50%', angle, 1),
+          offset: .22
+        },
+        {
+          opacity: 1,
+          transform: transformAt('-50%', angle, 1),
+          offset: .61,
+          easing: 'ease-in'
+        },
+        {
+          opacity: 0,
+          transform: transformAt('-58%', angle + 3, .92),
+          offset: 1
+        }
+      ], {duration: lifetime, fill: 'forwards'});
+
+      const item = {element: image, animation};
+      active.add(item);
+      latest = {element: image, x, y};
+      const cleanup = () => {
+        active.delete(item);
+        image.remove();
+        if (latest && latest.element === image) latest = null;
+      };
+      animation.addEventListener('finish', cleanup, {once:true});
+      animation.addEventListener('cancel', cleanup, {once:true});
+    }
+
+    hero.addEventListener('pointerenter', e => {
+      if (e.pointerType !== 'touch') preloadTrail();
     }, {passive:true});
+
+    hero.addEventListener('pointermove', e => {
+      if (e.pointerType === 'touch' || !canTrail() || !sources.length) return;
+      if (e.target.closest('a, button, summary')) {
+        lastSpawn = null;
+        latest = null;
+        return;
+      }
+
+      preloadTrail();
+      const rect = hero.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (latest) {
+        latest.element.style.left = (latest.x + (x - latest.x) * .22) + 'px';
+        latest.element.style.top = (latest.y + (y - latest.y) * .22) + 'px';
+      }
+
+      const now = performance.now();
+      if (!lastSpawn) {
+        spawnTrailImage(x, y, 0);
+        lastSpawn = {x, y, time:now};
+        return;
+      }
+
+      const dx = x - lastSpawn.x;
+      const dy = y - lastSpawn.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance < step || now - lastSpawn.time < 35) return;
+
+      // Fill large pointer jumps with intermediate tiles, but limit DOM churn.
+      const count = Math.min(3, Math.floor(distance / step));
+      for (let n = 1; n <= count; n++) {
+        spawnTrailImage(
+          lastSpawn.x + dx * n / count,
+          lastSpawn.y + dy * n / count,
+          dx / distance
+        );
+      }
+      lastSpawn = {x, y, time:now};
+    }, {passive:true});
+
+    hero.addEventListener('pointerleave', () => {
+      lastSpawn = null;
+      latest = null; // Let the existing images fade out naturally.
+    });
+    document.addEventListener('portfolio:motion', () => { if (!canTrail()) clearTrail(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) clearTrail(); });
+    finePointer.addEventListener('change', () => { if (!canTrail()) clearTrail(); });
   }
 
   // Accessible native dialog. The original image links remain the no-JS fallback.
