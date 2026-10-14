@@ -61,3 +61,12 @@ html.motion-paused{scroll-behavior:auto}.motion-paused *,.motion-paused *::befor
 }
 @media(prefers-reduced-motion:reduce){.about-manifesto .ink-word{color:inherit!important}}
 @media print{.about-manifesto .ink-word{color:inherit!important}}
+
+/* About accordion: gentle open/close motion, with an exclusive expanded state. */
+.about-details .accordion.is-enhanced .detail-body{animation:none}
+.about-details .accordion summary>span{transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.about-details .accordion.is-enhanced details[open] summary>span{transform:rotate(0deg)}
+.about-details .accordion.is-enhanced details.is-expanded summary>span{transform:rotate(45deg)}
+@media(prefers-reduced-motion:reduce){
+  .about-details .accordion summary>span{transition:none}
+}
