@@ -219,7 +219,7 @@
     cursorText.textContent=label;cursor.classList.toggle('has-label',Boolean(label));cursor.classList.toggle('is-link',Boolean(target));
     if(!cursorFrame)cursorFrame=requestAnimationFrame(tickCursor);
   },{passive:true});
-  document.addEventListener('pointerdown',()=>cursor.classList.add('is-pressed'),{passive:true});
+  document.addEventListener('pointerdown',e=>{if(!cursorAllowed() || e.pointerType==='touch')return;pointerX=cursorX=e.clientX;pointerY=cursorY=e.clientY;cursor.style.transform=`translate3d(${cursorX}px,${cursorY}px,0)`;cursor.classList.add('is-pressed');},{passive:true});
   document.addEventListener('pointerup',()=>cursor.classList.remove('is-pressed'),{passive:true});
   document.documentElement.addEventListener('pointerleave',stopCursor);
   window.addEventListener('blur',stopCursor);
@@ -228,15 +228,6 @@
   document.addEventListener('portfolio:motion',()=>{if(!cursorAllowed())stopCursor();});
   finePointer.addEventListener('change',stopCursor);wide.addEventListener('change',stopCursor);
 
-  // A restrained magnetic response on the new download pills.
-  document.querySelectorAll('.download-button').forEach(button=>{
-    button.addEventListener('pointermove',e=>{
-      if(!cursorAllowed())return;
-      const r=button.getBoundingClientRect();
-      button.style.translate=`${clamp((e.clientX-r.left-r.width/2)*.12,-9,9)}px ${clamp((e.clientY-r.top-r.height/2)*.18,-5,5)}px`;
-    },{passive:true});
-    const reset=()=>{button.style.translate='0px 0px';};
-    button.addEventListener('pointerleave',reset);button.addEventListener('blur',reset);document.addEventListener('portfolio:motion',reset);
-  });
+  // Keep download buttons stationary so the pointer and click target never slide apart.
 
 })();
