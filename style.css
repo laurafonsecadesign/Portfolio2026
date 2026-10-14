@@ -38,7 +38,7 @@ html.motion-paused{scroll-behavior:auto}.motion-paused *,.motion-paused *::befor
 .about-statement{margin-bottom:clamp(85px,12vw,170px)}
 .about-eyebrow{font-size:12px;letter-spacing:.075em;text-transform:uppercase;margin:0 0 clamp(32px,4vw,68px);color:var(--muted)}
 .about .about-manifesto{margin:0;max-width:none;font-family:Switzer,Arial,sans-serif;font-size:clamp(48px,6vw,124px);line-height:1.12;letter-spacing:-.057em;font-weight:500;text-transform:none;text-indent:clamp(0px,17vw,340px);text-wrap:pretty;overflow:visible}
-.about .about-manifesto em{font-family:"Iowan Old Style","Baskerville","Palatino Linotype",Georgia,serif;font-size:1.04em;font-style:italic;font-weight:400;letter-spacing:-.065em}
+.about .about-manifesto em{font-family:"Instrument Serif","Iowan Old Style","Baskerville","Palatino Linotype",Georgia,serif;font-size:1.04em;font-style:italic;font-weight:400;letter-spacing:-.04em}
 .about-manifesto.is-ink-ready .ink-word{color:#c3c3c3}
 .about-details{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);column-gap:clamp(44px,9vw,145px);align-items:start}
 .about-details .about-intro{min-width:0;max-width:540px}
