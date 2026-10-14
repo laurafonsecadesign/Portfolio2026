@@ -285,6 +285,84 @@
     paintInk();
   }
 
+  // Smooth, accessible, exclusive About accordion. The native <details> markup
+  // stays functional without JavaScript; enhancement preserves keyboard activation.
+  const aboutAccordion = document.querySelector('.about-details .accordion');
+  if (aboutAccordion) {
+    const panels = [...aboutAccordion.querySelectorAll(':scope > details')];
+    const transitions = new WeakMap();
+
+    function setAccordionPanel(panel, expand) {
+      const body = panel.querySelector('.detail-body');
+      const summary = panel.querySelector('summary');
+      if (!body || !summary) return;
+
+      // Measure the current animated height before cancelling an existing transition.
+      // This keeps fast repeated clicks from snapping to the previous endpoint.
+      const startHeight = panel.getBoundingClientRect().height;
+      const prior = transitions.get(panel);
+      if (prior) {
+        prior.height.cancel();
+        prior.content?.cancel();
+        transitions.delete(panel);
+      }
+
+      panel.classList.toggle('is-expanded', expand);
+      if (paused || reduced.matches || typeof panel.animate !== 'function') {
+        panel.open = expand;
+        panel.style.removeProperty('height');
+        panel.style.removeProperty('overflow');
+        return;
+      }
+
+      // Keep details open while animating closed so its content remains measurable.
+      if (expand) panel.open = true;
+      panel.style.height = startHeight + 'px';
+      panel.style.overflow = 'hidden';
+      const border = panel.offsetHeight - panel.clientHeight;
+      const targetHeight = expand
+        ? Math.max(startHeight, panel.scrollHeight)
+        : summary.getBoundingClientRect().height + border;
+
+      const duration = expand ? 450 : 360;
+      const height = panel.animate(
+        [{height:startHeight + 'px'}, {height:targetHeight + 'px'}],
+        {duration, easing:'cubic-bezier(.22,1,.36,1)'}
+      );
+      const content = body.animate(
+        expand
+          ? [{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}]
+          : [{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-5px)'}],
+        {duration:expand ? 380 : 250, easing:'ease-out'}
+      );
+      transitions.set(panel,{height,content});
+      height.addEventListener('finish', () => {
+        if (transitions.get(panel)?.height !== height) return;
+        panel.open = expand;
+        panel.style.removeProperty('height');
+        panel.style.removeProperty('overflow');
+        transitions.delete(panel);
+      }, {once:true});
+    }
+
+    panels.forEach(panel => {
+      panel.classList.toggle('is-expanded', panel.open);
+      panel.querySelector('summary')?.addEventListener('click', event => {
+        event.preventDefault();
+        const expand = !panel.classList.contains('is-expanded');
+        if (expand) {
+          panels.forEach(other => {
+            if (other !== panel && (other.open || other.classList.contains('is-expanded'))) {
+              setAccordionPanel(other, false);
+            }
+          });
+        }
+        setAccordionPanel(panel, expand);
+      });
+    });
+    aboutAccordion.classList.add('is-enhanced');
+  }
+
   // Word-by-word heading entrances: keep clipping only during the reveal.
   // Once each title finishes animating, its masks become overflow-visible to
   // avoid cutting off glyphs, accents and tightly tracked display lettering.
