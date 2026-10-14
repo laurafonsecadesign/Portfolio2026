@@ -71,7 +71,7 @@
     let latest = null;
     let imageIndex = 0;
     let cacheReady = false;
-    const canTrail = () => !paused && !reduced.matches && finePointer.matches && !document.hidden;
+    const canTrail = () => !paused && !reduced.matches && finePointer.matches && window.matchMedia('(min-width:701px)').matches && !document.hidden;
 
     function preloadTrail() {
       if (cacheReady || !sources.length || !canTrail()) return;
@@ -203,6 +203,64 @@
     document.addEventListener('portfolio:motion', () => { if (!canTrail()) clearTrail(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) clearTrail(); });
     finePointer.addEventListener('change', () => { if (!canTrail()) clearTrail(); });
+  }
+
+  // Mobile-only slideshow: fast, clean project-image transitions between the two logo lines.
+  // A static first photo remains available without JS or with reduced motion.
+  const mobileGallery = document.querySelector('.mobile-hero-gallery');
+  if (mobileGallery && trail) {
+    const mobileViewport = window.matchMedia('(max-width:700px)');
+    const sources = (trail.dataset.images || '').split('|').filter(Boolean);
+    const layers = [...mobileGallery.querySelectorAll('.mobile-hero-photo')];
+    let visibleLayer = 0;
+    let slideIndex = 0;
+    let slideshowTimer = null;
+    let loadingSlide = false;
+    let generation = 0;
+    const slideshowEnabled = () =>
+      mobileViewport.matches && !paused && !reduced.matches && !document.hidden && sources.length > 1;
+
+    function advanceMobileSlide() {
+      if (!slideshowEnabled() || loadingSlide || layers.length !== 2) return;
+      loadingSlide = true;
+      const nextIndex = (slideIndex + 1) % sources.length;
+      const requestGeneration = generation;
+      const nextImage = new Image();
+      nextImage.onload = () => {
+        if (requestGeneration !== generation || !slideshowEnabled()) return;
+        const outgoing = layers[visibleLayer];
+        const incoming = layers[1 - visibleLayer];
+        incoming.src = nextImage.src;
+        incoming.classList.add('is-current');
+        outgoing.classList.remove('is-current');
+        visibleLayer = 1 - visibleLayer;
+        slideIndex = nextIndex;
+        loadingSlide = false;
+      };
+      nextImage.onerror = () => {
+        if (requestGeneration !== generation) return;
+        slideIndex = nextIndex;
+        loadingSlide = false;
+      };
+      nextImage.src = sources[nextIndex];
+    }
+
+    function syncMobileSlides() {
+      if (!slideshowEnabled()) {
+        if (slideshowTimer !== null) clearInterval(slideshowTimer);
+        slideshowTimer = null;
+        generation++;
+        loadingSlide = false;
+        return;
+      }
+      if (slideshowTimer === null) {
+        slideshowTimer = setInterval(advanceMobileSlide, 760);
+      }
+    }
+    syncMobileSlides();
+    mobileViewport.addEventListener('change', syncMobileSlides);
+    document.addEventListener('portfolio:motion', syncMobileSlides);
+    document.addEventListener('visibilitychange', syncMobileSlides);
   }
 
   // Accessible native dialog. The original image links remain the no-JS fallback.
