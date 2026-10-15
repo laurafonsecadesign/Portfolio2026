@@ -51,7 +51,7 @@
       reelGeneration++;
     }
     function queueReel() {
-      if (canPlayReel() && reelTimer === null) reelTimer = setTimeout(advanceReel, 1320);
+      if (canPlayReel() && reelTimer === null) reelTimer = setTimeout(advanceReel, 480);
     }
     function advanceReel() {
       reelTimer = null;
