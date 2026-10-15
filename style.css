@@ -252,3 +252,34 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
 /* Pin the showcase immediately under the fixed site header, with no blank lower strip. */
 .project-showcase__arrow{width:clamp(18px,1.7vw,24px);height:clamp(18px,1.7vw,24px);display:block;flex:none;stroke:currentColor;fill:none}
 @media(max-width:700px){.project-showcase__arrow{width:19px;height:19px}}
+
+
+/* About: scroll-scrubbed editorial reveals, starting with portrait and bio.
+   Position and opacity follow scroll forward/backward; disabled for reduced motion. */
+.about-scroll-motion .about-details [data-about-scroll]{
+  opacity:calc(.12 + .88 * var(--about-reveal, 0));
+  transform:translate3d(0,calc((1 - var(--about-reveal, 0)) * 34px),0);
+  transition:none!important;
+}
+.about-scroll-motion .about-details .portrait[data-about-scroll]{
+  opacity:calc(.2 + .8 * var(--about-reveal, 0));
+  transform:translate3d(0,calc((1 - var(--about-reveal, 0)) * 54px),0) rotate(calc((1 - var(--about-reveal, 0)) * -4deg)) scale(calc(.93 + .07 * var(--about-reveal, 0)));
+  transform-origin:55% 55%;
+}
+.about-scroll-motion .about-details .typecv-part__header[data-about-scroll]{
+  transform:translate3d(calc((1 - var(--about-reveal, 0)) * -26px),0,0);
+}
+.about-scroll-motion .about-details .typecv-tools li[data-about-scroll],
+.about-scroll-motion .about-details .typecv-skills li[data-about-scroll]{
+  transform:translate3d(0,calc((1 - var(--about-reveal, 0)) * 24px),0);
+}
+@media(max-width:700px){
+ .about-scroll-motion .about-details [data-about-scroll]{transform:translate3d(0,calc((1 - var(--about-reveal, 0)) * 21px),0)}
+ .about-scroll-motion .about-details .portrait[data-about-scroll]{transform:translate3d(0,calc((1 - var(--about-reveal, 0)) * 30px),0) rotate(calc((1 - var(--about-reveal, 0)) * -2deg)) scale(calc(.96 + .04 * var(--about-reveal, 0)))}
+ .about-scroll-motion .about-details .typecv-part__header[data-about-scroll]{transform:translate3d(calc((1 - var(--about-reveal, 0)) * -12px),0,0)}
+}
+@media(prefers-reduced-motion:reduce){
+ .about-details [data-about-scroll]{opacity:1!important;transform:none!important;transition:none!important}
+}
+.motion-paused .about-details [data-about-scroll]{opacity:1!important;transform:none!important;transition:none!important}
+@media print{.about-details [data-about-scroll]{opacity:1!important;transform:none!important}}
