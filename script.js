@@ -99,13 +99,19 @@
     const panels = [...showcase.querySelectorAll('.project-showcase__panel')];
     const reduceShowcaseMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let showcaseFrame = 0, showcaseEnabled = false;
+    function getShowcaseHeaderHeight() {
+      return document.querySelector('.site-header')?.getBoundingClientRect().height || 0;
+    }
+    function syncShowcaseHeaderHeight() {
+      showcase.style.setProperty('--showcase-header-height', getShowcaseHeaderHeight() + 'px');
+    }
     const clampShowcase = (n, min, max) => Math.max(min, Math.min(max, n));
 
     function paintShowcase() {
       showcaseFrame = 0;
       if (!showcaseEnabled) return;
       const viewportHeight = Math.max(1, stage.offsetHeight);
-      const progress = clampShowcase(-showcase.getBoundingClientRect().top / viewportHeight, 0, panels.length - 1);
+      const progress = clampShowcase((getShowcaseHeaderHeight() - showcase.getBoundingClientRect().top) / viewportHeight, 0, panels.length - 1);
       const current = Math.floor(progress);
       const fraction = progress - current;
       panels.forEach((panel, index) => {
@@ -124,6 +130,7 @@
       showcaseFrame = requestAnimationFrame(paintShowcase);
     }
     function setShowcaseMode() {
+      syncShowcaseHeaderHeight();
       showcaseEnabled = panels.length > 1 && !reduceShowcaseMotion.matches;
       root.classList.toggle('showcase-scrubbed', showcaseEnabled);
       showcase.style.setProperty('--showcase-count', panels.length);
@@ -138,7 +145,7 @@
       } else paintShowcase();
     }
     window.addEventListener('scroll', scheduleShowcase, { passive: true });
-    window.addEventListener('resize', scheduleShowcase, { passive: true });
+    window.addEventListener('resize', () => { syncShowcaseHeaderHeight(); scheduleShowcase(); }, { passive: true });
     window.addEventListener('pageshow', scheduleShowcase);
     reduceShowcaseMotion.addEventListener('change', setShowcaseMode);
     setShowcaseMode();
