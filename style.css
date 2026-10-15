@@ -193,3 +193,58 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
  .about-details .accordion--editorial>details{break-inside:avoid}
  .about-details .accordion--editorial>details>summary{padding:16px 0}
 }
+
+
+
+/* Typographic CV — open editorial About layout with no accordions. */
+.about-details .about-intro{position:sticky;top:clamp(100px,9vw,142px);align-self:start}
+.about-details .typecv{min-width:0;width:100%}
+.typecv-part{border-top:1px solid var(--ink);padding:clamp(24px,3vw,44px) 0 clamp(45px,5vw,77px)}
+.typecv-part:last-child{border-bottom:1px solid var(--ink);padding-bottom:clamp(30px,3.7vw,55px)}
+.typecv-part__header{display:flex;align-items:baseline;gap:clamp(11px,1.3vw,23px);margin-bottom:clamp(25px,2.9vw,43px)}
+.typecv-part__number{font-size:12px;letter-spacing:.05em;color:var(--muted);font-variant-numeric:tabular-nums}
+.typecv-part__header h3{margin:0;min-width:0;font-size:clamp(36px,4.6vw,76px);line-height:.94;font-weight:500;letter-spacing:-.07em;overflow-wrap:normal}
+.typecv-entry+.typecv-entry{border-top:1px solid rgba(38,38,38,.18);margin-top:clamp(27px,3vw,43px);padding-top:clamp(27px,3vw,43px)}
+.typecv-entry__heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:9px 20px}
+.typecv-entry__heading h4{margin:0;font-weight:400;line-height:1.12;letter-spacing:-.06em;font-size:clamp(29px,3.1vw,49px);overflow-wrap:anywhere}
+.typecv-date{font-size:clamp(10px,.85vw,12px);letter-spacing:.02em;line-height:1.5;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.typecv-subline{margin:clamp(10px,1.1vw,16px) 0 0;font-size:clamp(13px,1.1vw,16px);line-height:1.55}
+.typecv-subline span{color:var(--muted)}
+.typecv-notes{padding-left:17px;margin:clamp(12px,1.5vw,20px) 0 0;font-size:clamp(12px,.96vw,14px);line-height:1.6;color:var(--muted)}
+.typecv-notes li+li{margin-top:7px}
+.typecv-tools,.typecv-skills{display:flex;flex-wrap:wrap;align-items:center;list-style:none;margin:0;padding:0}
+.typecv-tools{gap:8px}
+.typecv-tools li{font-size:clamp(12px,1.06vw,16px);line-height:1.25;padding:11px 16px;border:1px solid rgba(38,38,38,.6);border-radius:999px}
+.typecv-skills li{font-size:clamp(19px,2.15vw,32px);letter-spacing:-.04em;line-height:1.38}
+.typecv-skills li:not(:last-child)::after{content:" · ";white-space:pre;color:var(--muted)}
+.typecv-languages{margin:0;padding:0}
+.typecv-language{display:grid;grid-template-columns:minmax(0,.5fr) minmax(0,1fr);align-items:baseline;gap:15px;padding:17px 0;border-bottom:1px solid rgba(38,38,38,.18)}
+.typecv-language:first-child{padding-top:0}
+.typecv-language:last-child{border-bottom:0;padding-bottom:0}
+.typecv-language dt{font-size:clamp(20px,1.9vw,29px);letter-spacing:-.045em}
+.typecv-language dd{margin:0;color:var(--muted);font-size:clamp(12px,1vw,15px);line-height:1.5}
+@media(max-width:1000px){
+ .typecv-entry__heading{flex-direction:column;align-items:flex-start;gap:6px}
+ .typecv-part__header h3{font-size:clamp(35px,4.6vw,57px)}
+ .typecv-entry__heading h4{font-size:clamp(27px,3.2vw,42px)}
+}
+@media(max-width:700px){
+ .about-details .about-intro{position:static;top:auto}
+ .typecv-part{padding:27px 0 45px}
+ .typecv-part__header{gap:12px;margin-bottom:24px}
+ .typecv-part__header h3{font-size:clamp(36px,9.5vw,64px)}
+ .typecv-entry__heading h4{font-size:clamp(30px,8vw,46px)}
+ .typecv-date{font-size:11px}
+ .typecv-subline{font-size:14px}
+ .typecv-notes{font-size:13px}
+ .typecv-tools{gap:7px}
+ .typecv-tools li{font-size:13px;padding:10px 13px}
+ .typecv-skills li{font-size:clamp(19px,5.5vw,26px)}
+ .typecv-language{grid-template-columns:minmax(0,.45fr) minmax(0,1fr);gap:10px;padding:15px 0}
+ .typecv-language dt{font-size:20px}
+ .typecv-language dd{font-size:12px}
+}
+@media print{
+ .about-details .about-intro{position:static}
+ .typecv-part,.typecv-entry{break-inside:avoid;page-break-inside:avoid}
+}
