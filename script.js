@@ -532,7 +532,6 @@
   // Scroll-based motion uses the browser's native scrolling; no wheel interception.
   const progress = document.querySelector('.scroll-progress');
   const logo = document.querySelector('.hero-logo');
-  const portrait = document.querySelector('.portrait');
   // About scroll-driven reveal elements: each responds proportionally to real scroll,
   // with no timers and no forced scroll capture.
   const aboutMotionTargets = [
@@ -553,6 +552,8 @@
     if (enabled) {
       const viewport = Math.max(innerHeight, 1);
       aboutMotionTargets.forEach(element => {
+        // On desktop the left About column stays static; its scroll reveals are mobile-only.
+        if (wide.matches && element.closest('.about-intro')) return;
         const box = element.getBoundingClientRect();
         if (box.top > viewport * 1.3 || box.bottom < -viewport * .3) return;
         const amount = clamp((viewport * .90 - box.top) / (viewport * .53), 0, 1);
@@ -574,11 +575,6 @@
         const amount=clamp((innerHeight/2-(rect.top+rect.height/2))/innerHeight,-1,1);
         card.style.setProperty('--image-shift',`${amount*28}px`);
       });
-      if (portrait) {
-        const rect=portrait.getBoundingClientRect(), amount=clamp((innerHeight/2-rect.top)/innerHeight,-1,1);
-        portrait.style.setProperty('--portrait-shift',`${amount*-13}px`);
-        portrait.style.setProperty('--portrait-rotate',`${amount*2}deg`);
-      }
     }
   }
   function scheduleScroll(){if(!motionFrame) motionFrame=requestAnimationFrame(paintScroll);}
