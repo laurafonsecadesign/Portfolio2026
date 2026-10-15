@@ -16,6 +16,39 @@
   applyMotion();
   reduced.addEventListener('change', e => { paused = e.matches; applyMotion(); });
 
+  // Homepage-only typographic entry screen; waits for the page to be usable.
+  // A hard deadline prevents slow images or web fonts from trapping the visitor.
+  const siteLoader = document.getElementById('site-loader');
+  if (siteLoader && root.classList.contains('site-loader-active')) {
+    const started = window.__lfEntryStarted || performance.now();
+    let leaving = false;
+    let gone = false;
+    const cleanup = () => {
+      if (gone) return;
+      gone = true;
+      root.classList.remove('site-loader-active');
+      siteLoader.remove();
+    };
+    const exitLoader = () => {
+      if (leaving) return;
+      leaving = true;
+      if (reduced.matches) { cleanup(); return; }
+      siteLoader.classList.add('is-exiting');
+      siteLoader.addEventListener('transitionend', event => {
+        if (event.target === siteLoader && event.propertyName === 'transform') cleanup();
+      }, {once:true});
+      setTimeout(cleanup, 1100);
+    };
+    const releaseWhenReady = () => {
+      const elapsed = performance.now() - started;
+      setTimeout(exitLoader, Math.max(0, 1050 - elapsed));
+    };
+    if (document.readyState === 'complete') releaseWhenReady();
+    else window.addEventListener('load', releaseWhenReady, {once:true});
+    setTimeout(releaseWhenReady, 2700);
+    reduced.addEventListener('change', event => { if (event.matches) cleanup(); });
+  }
+
   // The language switch keeps the current section on the equivalent static page.
   const language = document.querySelector('.language-switch');
   if (language) {
