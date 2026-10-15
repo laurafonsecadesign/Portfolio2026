@@ -70,3 +70,35 @@ html.motion-paused{scroll-behavior:auto}.motion-paused *,.motion-paused *::befor
 @media(prefers-reduced-motion:reduce){
   .about-details .accordion summary>span{transition:none}
 }
+
+
+/* Mobile-only opening logo and project reel, based on the supplied reference. */
+.mobile-hero{display:none}
+@media(max-width:700px){
+  .hero{padding-inline:var(--gutter)}
+  .hero-logo{display:none}
+  .image-trail{display:none}
+  .mobile-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;position:relative;z-index:1;pointer-events:none;user-select:none}
+  .mobile-hero__name{display:block;height:auto;flex:none;max-width:100%;object-fit:contain}
+  .mobile-hero__name--laura{width:min(39vw,165px)}
+  .mobile-hero__name--fonseca{width:min(60vw,248px)}
+  .mobile-hero__reel{position:relative;width:min(55vw,230px);height:0;flex:none;margin:8px 0;overflow:hidden;opacity:0;transform:scale(.86);background:#f4f4f4;animation:mobile-hero-unfold 1.05s cubic-bezier(.22,1,.36,1) .25s both}
+  .mobile-hero__slide{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;transition:opacity .33s ease}
+  .mobile-hero__slide.is-active{opacity:1}
+}
+@keyframes mobile-hero-unfold{
+  0%{height:0;opacity:0;transform:scale(.86)}
+  45%{opacity:1}
+  100%{height:clamp(108px,35vw,160px);opacity:1;transform:scale(1)}
+}
+@media(max-width:700px) and (prefers-reduced-motion:reduce){
+  .mobile-hero__reel{animation:none!important;height:clamp(108px,35vw,160px);opacity:1;transform:none}
+  .mobile-hero__slide{transition:none!important}
+}
+@media(max-width:700px){
+  .motion-paused .mobile-hero__reel{animation:none!important;height:clamp(108px,35vw,160px);opacity:1;transform:none}
+  .motion-paused .mobile-hero__slide{transition:none!important}
+}
+@media print{
+  .mobile-hero{display:none!important}
+}

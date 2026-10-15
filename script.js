@@ -35,6 +35,62 @@
   document.addEventListener('click', e => { if (!e.target.closest('.site-header')) closeMenu(); });
   window.matchMedia('(min-width:701px)').addEventListener('change', e => { if (e.matches) closeMenu(); });
 
+  // Mobile-only animated project reel: a lightweight video-like montage of existing projects.
+  // It pauses offscreen, when the tab is hidden, and for reduced-motion visitors.
+  const mobileHero = document.querySelector('.mobile-hero');
+  if (mobileHero) {
+    const reel = mobileHero.querySelector('.mobile-hero__reel');
+    const slides = [...mobileHero.querySelectorAll('.mobile-hero__slide')];
+    const sources = (reel.dataset.images || '').split('|').filter(Boolean);
+    const mobileScreen = window.matchMedia('(max-width:700px)');
+    let currentImage = 0, visibleSlide = 0, reelTimer = null, reelGeneration = 0, heroInView = true;
+    const canPlayReel = () => mobileScreen.matches && !paused && !document.hidden && heroInView && sources.length > 1;
+
+    function stopReel() {
+      if (reelTimer !== null) { clearTimeout(reelTimer); reelTimer = null; }
+      reelGeneration++;
+    }
+    function queueReel() {
+      if (canPlayReel() && reelTimer === null) reelTimer = setTimeout(advanceReel, 1320);
+    }
+    function advanceReel() {
+      reelTimer = null;
+      if (!canPlayReel()) return;
+      const nextIndex = (currentImage + 1) % sources.length;
+      const nextSlide = slides[1 - visibleSlide];
+      const image = new Image();
+      const token = ++reelGeneration;
+      let handled = false;
+      const show = () => {
+        if (handled) return;
+        handled = true;
+        if (token !== reelGeneration || !canPlayReel()) return;
+        nextSlide.src = sources[nextIndex];
+        nextSlide.classList.add('is-active');
+        slides[visibleSlide].classList.remove('is-active');
+        visibleSlide = 1 - visibleSlide;
+        currentImage = nextIndex;
+        queueReel();
+      };
+      image.onload = show;
+      image.onerror = () => { if (token === reelGeneration) queueReel(); };
+      image.src = sources[nextIndex];
+      if (image.complete && image.naturalWidth) show();
+    }
+    const syncReel = () => { if (canPlayReel()) queueReel(); else stopReel(); };
+    if ('IntersectionObserver' in window) {
+      const reelObserver = new IntersectionObserver(entries => {
+        heroInView = entries.some(entry => entry.isIntersecting);
+        syncReel();
+      }, { threshold: 0.01 });
+      reelObserver.observe(mobileHero);
+    }
+    mobileScreen.addEventListener('change', syncReel);
+    document.addEventListener('visibilitychange', syncReel);
+    document.addEventListener('portfolio:motion', syncReel);
+    syncReel();
+  }
+
   const header = document.querySelector('.site-header');
   let ticking = false;
   const updateHeader = () => { header?.classList.toggle('scrolled', scrollY > 30); ticking = false; };
