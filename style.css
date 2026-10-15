@@ -316,24 +316,111 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
 }
 
 
-/* Footer-only scroll wipe: preserves all existing layout, colors, copy and links.
-   The contact panel and existing footer reveal from bottom to top as they enter. */
-html.footer-scroll-reveal #contact,
-html.footer-scroll-reveal body > .footer {
-  -webkit-clip-path: inset(var(--footer-clip, 0%) 0 0 0);
-  clip-path: inset(var(--footer-clip, 0%) 0 0 0);
+
+/* Full-viewport inverse footer. Native sticky positioning pins the entire contact
+   screen after it enters; the bottom-to-top wipe follows scroll position exactly. */
+.footer-reveal{
+  --footer-wipe:0%;
+  position:relative;
+  width:100%;
+  height:175vh;
+  height:175svh;
+  background:var(--paper);
+  isolation:isolate;
 }
-@media (prefers-reduced-motion: reduce) {
-  html.footer-scroll-reveal #contact,
-  html.footer-scroll-reveal body > .footer {
-    -webkit-clip-path: none !important;
-    clip-path: none !important;
-  }
+.footer-reveal__stage{
+  position:sticky;
+  top:0;
+  width:100%;
+  height:100vh;
+  height:100svh;
+  overflow:hidden;
 }
-@media print {
-  html.footer-scroll-reveal #contact,
-  html.footer-scroll-reveal body > .footer {
-    -webkit-clip-path: none !important;
-    clip-path: none !important;
-  }
+.footer-reveal__surface{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  background:var(--ink);
+  color:var(--paper);
+  -webkit-clip-path:inset(var(--footer-wipe) 0 0 0);
+  clip-path:inset(var(--footer-wipe) 0 0 0);
+  transition:none;
+}
+.footer-reveal .contact.section{
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-height:0;
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:clamp(100px,12vh,165px) var(--gutter) clamp(30px,5vh,60px);
+}
+.footer-reveal .eyebrow{
+  color:var(--paper);
+  opacity:.72;
+  margin-bottom:clamp(24px,3.5vh,50px);
+}
+.footer-reveal .contact-title{display:block;width:100%;color:var(--paper)}
+.footer-reveal .contact-title h2{
+  display:block;
+  font-family:Switzer,Arial,sans-serif;
+  font-weight:700;
+  font-size:clamp(68px,17vw,290px);
+  letter-spacing:-.075em;
+  line-height:.86;
+  color:inherit;
+  text-transform:uppercase;
+  margin:0;
+  max-width:100%;
+}
+html[lang=es] .footer-reveal .contact-title h2{font-size:clamp(53px,10.9vw,185px)}
+.footer-reveal .footer{
+  width:100%;
+  max-width:none;
+  flex:0 0 auto;
+  margin:0;
+  padding:18px var(--gutter) max(26px,env(safe-area-inset-bottom));
+  color:var(--paper);
+}
+.footer-reveal .socials{color:inherit;gap:clamp(16px,3vw,38px);flex-wrap:wrap}
+.footer-reveal .socials a{color:inherit}
+.footer-reveal .footer-bottom{
+  border-color:rgba(244,244,244,.45);
+  margin-top:clamp(18px,3vh,36px);
+  padding-top:18px;
+  color:inherit;
+}
+.footer-reveal a:focus-visible{outline-color:var(--paper)}
+@media(max-width:700px){
+  .footer-reveal .contact.section{padding:100px var(--gutter) 20px}
+  .footer-reveal .contact-title h2{font-size:clamp(58px,19vw,105px);line-height:.87}
+  html[lang=es] .footer-reveal .contact-title h2{font-size:clamp(33px,10.2vw,62px)}
+  .footer-reveal .eyebrow{font-size:11px;margin-bottom:24px}
+  .footer-reveal .footer{padding:18px var(--gutter) max(24px,env(safe-area-inset-bottom))}
+  .footer-reveal .socials{font-size:clamp(13px,3.7vw,16px);gap:14px 22px}
+  .footer-reveal .footer-bottom{font-size:10px;gap:12px;margin-top:23px}
+}
+@media(max-height:560px){
+  .footer-reveal .contact.section{padding-top:75px;padding-bottom:10px}
+  .footer-reveal .contact-title h2{font-size:min(14vw,15vh)}
+  html[lang=es] .footer-reveal .contact-title h2{font-size:min(9.5vw,12vh)}
+  .footer-reveal .footer{padding-top:10px;padding-bottom:12px}
+  .footer-reveal .footer-bottom{margin-top:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .footer-reveal{height:auto}
+  .footer-reveal__stage{position:relative;min-height:100svh;height:auto}
+  .footer-reveal__surface{-webkit-clip-path:none!important;clip-path:none!important;min-height:100svh}
+}
+.motion-paused .footer-reveal{height:auto}
+.motion-paused .footer-reveal__stage{position:relative;min-height:100svh;height:auto}
+.motion-paused .footer-reveal__surface{-webkit-clip-path:none!important;clip-path:none!important;min-height:100svh}
+@media print{
+  .footer-reveal{height:auto!important}
+  .footer-reveal__stage{position:relative!important;height:auto!important;overflow:visible}
+  .footer-reveal__surface{-webkit-clip-path:none!important;clip-path:none!important}
 }

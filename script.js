@@ -151,38 +151,34 @@
     setShowcaseMode();
   }
 
-  // Footer-only scroll wipe — no reflow, redesign, drag control or autoplay.
-  const contactReveal = document.querySelector('#contact.contact');
-  const footerReveal = document.querySelector('body > footer.footer');
-  if (contactReveal && footerReveal &&
-      CSS.supports('clip-path', 'inset(50% 0 0 0)')) {
-    const footerParts = [contactReveal, footerReveal];
-    let footerRevealFrame = 0;
-    function paintFooterReveal() {
-      footerRevealFrame = 0;
-      const active = !paused && !reduced.matches;
-      root.classList.toggle('footer-scroll-reveal', active);
-      if (!active) {
-        footerParts.forEach(part => part.style.removeProperty('--footer-clip'));
+  // Scroll-controlled bottom-to-top footer reveal. Native sticky pin keeps the
+  // inverted contact + footer on one full-height screen at the end of the page.
+  const immersiveFooter = document.querySelector('.footer-reveal');
+  if (immersiveFooter) {
+    const footerSurface = immersiveFooter.querySelector('.footer-reveal__surface');
+    let footerFrame = 0;
+    function paintImmersiveFooter() {
+      footerFrame = 0;
+      if (paused || reduced.matches || !CSS.supports('clip-path', 'inset(10% 0 0 0)')) {
+        footerSurface.style.removeProperty('--footer-wipe');
         return;
       }
-      const viewport = Math.max(1, window.innerHeight);
-      footerParts.forEach(part => {
-        const rect = part.getBoundingClientRect();
-        // Full reveal at the end of each block, including the final page footer.
-        const distance = Math.max(1, Math.min(rect.height, viewport * .6));
-        const amount = Math.min(1, Math.max(0, (viewport - rect.top) / distance));
-        part.style.setProperty('--footer-clip', ((1 - amount) * 100).toFixed(3) + '%');
-      });
+      const height = Math.max(1, immersiveFooter.querySelector('.footer-reveal__stage').getBoundingClientRect().height);
+      // The panel arrives from below the viewport, becoming fully visible
+      // exactly when its sticky position reaches the top.
+      const top = immersiveFooter.getBoundingClientRect().top;
+      const progress = Math.min(1, Math.max(0, (height - top) / height));
+      const inset = (1 - progress) * 16;
+      footerSurface.style.setProperty('--footer-wipe', inset.toFixed(3) + '%');
     }
-    function queueFooterReveal() {
-      if (!footerRevealFrame) footerRevealFrame = requestAnimationFrame(paintFooterReveal);
+    function scheduleImmersiveFooter() {
+      if (!footerFrame) footerFrame = requestAnimationFrame(paintImmersiveFooter);
     }
-    window.addEventListener('scroll', queueFooterReveal, {passive:true});
-    window.addEventListener('resize', queueFooterReveal, {passive:true});
-    window.addEventListener('pageshow', queueFooterReveal);
-    document.addEventListener('portfolio:motion', queueFooterReveal);
-    paintFooterReveal();
+    window.addEventListener('scroll', scheduleImmersiveFooter, {passive:true});
+    window.addEventListener('resize', scheduleImmersiveFooter, {passive:true});
+    window.addEventListener('pageshow', scheduleImmersiveFooter);
+    document.addEventListener('portfolio:motion', scheduleImmersiveFooter);
+    paintImmersiveFooter();
   }
 
   const header = document.querySelector('.site-header');
@@ -204,7 +200,7 @@
         if (a.hash === '#' + entry.target.id) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
       });
     }), { rootMargin:'-15% 0px -55% 0px' });
-    document.querySelectorAll('main section[id]:not(#hero)').forEach(s => sections.observe(s));
+    document.querySelectorAll('main section[id]:not(#hero), section.footer-reveal[id]').forEach(s => sections.observe(s));
   }
 
   // A fluid, layered photo trail inspired by Yourwave.
