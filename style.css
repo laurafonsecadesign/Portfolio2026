@@ -113,7 +113,7 @@ html.motion-paused{scroll-behavior:auto}.motion-paused *,.motion-paused *::befor
 .project-showcase__shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.27) 0%,rgba(0,0,0,.36) 48%,rgba(0,0,0,.48) 100%);pointer-events:none}
 .project-showcase__center{position:relative;z-index:1;display:grid;place-items:center;width:100%;padding:0 clamp(20px,4vw,75px);pointer-events:none}
 .project-showcase__name{max-width:100%;color:#fff;text-transform:uppercase;text-align:center;text-wrap:balance;overflow-wrap:normal;font-size:clamp(56px,11vw,190px);font-weight:500;letter-spacing:-.075em;line-height:.94;text-shadow:0 2px 35px rgba(0,0,0,.22)}
-.project-showcase__name--long{font-size:clamp(46px,8vw,140px);letter-spacing:-.07em}
+
 .project-showcase__info{position:absolute;z-index:2;left:var(--gutter);bottom:clamp(24px,5vh,62px);display:flex;flex-direction:column;gap:9px;pointer-events:none;text-transform:uppercase}
 .project-showcase__index{font-size:12px;letter-spacing:.06em;opacity:.84}
 .project-showcase__category{font-size:clamp(12px,1.1vw,16px);letter-spacing:.015em}
@@ -122,7 +122,7 @@ html.motion-paused{scroll-behavior:auto}.motion-paused *,.motion-paused *::befor
 .project-showcase__link:focus-visible{outline:3px solid #fff;outline-offset:-10px;border-radius:0}
 @media(max-width:700px){
  .project-showcase__name{font-size:clamp(48px,15vw,86px);letter-spacing:-.075em}
- .project-showcase__name--long{font-size:clamp(40px,10.5vw,67px);letter-spacing:-.065em}
+ 
  .project-showcase__center{padding-inline:16px}
  .project-showcase__info{bottom:34px}
  .project-showcase__action{bottom:34px;font-size:12px}
