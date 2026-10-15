@@ -317,26 +317,32 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
 
 
 
-/* Full-viewport inverse footer. Native sticky positioning pins the entire contact
-   screen after it enters; the bottom-to-top wipe follows scroll position exactly. */
-.footer-reveal{
-  --footer-wipe:0%;
+/* Inverse footer reveal: the page slides UP to uncover a footer that does not move.
+   Only the final viewport is the reveal spacer; no sticky panel, clipping or scale. */
+body{background:var(--ink)}
+body > main{
   position:relative;
-  width:100%;
-  height:175vh;
-  height:175svh;
+  z-index:2;
   background:var(--paper);
-  isolation:isolate;
+}
+.footer-reveal{
+  position:relative;
+  height:100vh;
+  height:100dvh;
+  isolation:auto;
+  background:transparent;
 }
 .footer-reveal__stage{
-  position:sticky;
-  top:0;
+  position:fixed;
+  inset:0;
+  z-index:0;
   width:100%;
   height:100vh;
-  height:100svh;
+  height:100dvh;
   overflow:hidden;
 }
 .footer-reveal__surface{
+  position:relative;
   width:100%;
   height:100%;
   display:flex;
@@ -344,8 +350,10 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
   justify-content:space-between;
   background:var(--ink);
   color:var(--paper);
-  -webkit-clip-path:inset(var(--footer-wipe) 0 0 0);
-  clip-path:inset(var(--footer-wipe) 0 0 0);
+  -webkit-clip-path:none;
+  clip-path:none;
+  opacity:1;
+  transform:none;
   transition:none;
 }
 .footer-reveal .contact.section{
@@ -361,23 +369,31 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
 }
 .footer-reveal .eyebrow{
   color:var(--paper);
-  opacity:.72;
+  opacity:.75;
   margin-bottom:clamp(24px,3.5vh,50px);
 }
-.footer-reveal .contact-title{display:block;width:100%;color:var(--paper)}
-.footer-reveal .contact-title h2{
+.footer-reveal .contact-title{
   display:block;
+  width:100%;
+  color:var(--paper);
+}
+/* Restore the ORIGINAL Switzer heading sizing, weight and tracking. Only invert the color. */
+.footer-reveal .contact-title h2{
+  display:inline-block;
   font-family:Switzer,Arial,sans-serif;
-  font-weight:700;
-  font-size:clamp(68px,17vw,290px);
+  font-weight:400;
+  font-size:clamp(90px,18.4vw,320px);
   letter-spacing:-.075em;
-  line-height:.86;
-  color:inherit;
-  text-transform:uppercase;
+  line-height:.82;
+  color:var(--paper);
+  text-transform:none;
   margin:0;
   max-width:100%;
 }
-html[lang=es] .footer-reveal .contact-title h2{font-size:clamp(53px,10.9vw,185px)}
+html[lang=es] .footer-reveal .contact-title h2{
+  font-size:clamp(52px,12.4vw,220px);
+  letter-spacing:-.07em;
+}
 .footer-reveal .footer{
   width:100%;
   max-width:none;
@@ -386,7 +402,11 @@ html[lang=es] .footer-reveal .contact-title h2{font-size:clamp(53px,10.9vw,185px
   padding:18px var(--gutter) max(26px,env(safe-area-inset-bottom));
   color:var(--paper);
 }
-.footer-reveal .socials{color:inherit;gap:clamp(16px,3vw,38px);flex-wrap:wrap}
+.footer-reveal .socials{
+  color:inherit;
+  gap:clamp(16px,3vw,38px);
+  flex-wrap:wrap;
+}
 .footer-reveal .socials a{color:inherit}
 .footer-reveal .footer-bottom{
   border-color:rgba(244,244,244,.45);
@@ -395,12 +415,27 @@ html[lang=es] .footer-reveal .contact-title h2{font-size:clamp(53px,10.9vw,185px
   color:inherit;
 }
 .footer-reveal a:focus-visible{outline-color:var(--paper)}
+/* Let the fixed header disappear only after the footer has nearly filled the screen. */
+html.footer-at-top .site-header{
+  transform:translateY(-110%);
+  pointer-events:none;
+}
+.site-header{
+  transition:box-shadow .3s,transform .35s cubic-bezier(.22,1,.36,1);
+}
 @media(max-width:700px){
-  .footer-reveal .contact.section{padding:100px var(--gutter) 20px}
-  .footer-reveal .contact-title h2{font-size:clamp(58px,19vw,105px);line-height:.87}
-  html[lang=es] .footer-reveal .contact-title h2{font-size:clamp(33px,10.2vw,62px)}
+  .footer-reveal .contact.section{
+    padding:100px var(--gutter) 20px;
+  }
+  .footer-reveal .contact-title h2{
+    font-size:18.5vw;
+    line-height:.82;
+  }
+  html[lang=es] .footer-reveal .contact-title h2{font-size:12.2vw}
   .footer-reveal .eyebrow{font-size:11px;margin-bottom:24px}
-  .footer-reveal .footer{padding:18px var(--gutter) max(24px,env(safe-area-inset-bottom))}
+  .footer-reveal .footer{
+    padding:18px var(--gutter) max(24px,env(safe-area-inset-bottom));
+  }
   .footer-reveal .socials{font-size:clamp(13px,3.7vw,16px);gap:14px 22px}
   .footer-reveal .footer-bottom{font-size:10px;gap:12px;margin-top:23px}
 }
@@ -412,15 +447,12 @@ html[lang=es] .footer-reveal .contact-title h2{font-size:clamp(53px,10.9vw,185px
   .footer-reveal .footer-bottom{margin-top:9px}
 }
 @media(prefers-reduced-motion:reduce){
-  .footer-reveal{height:auto}
-  .footer-reveal__stage{position:relative;min-height:100svh;height:auto}
-  .footer-reveal__surface{-webkit-clip-path:none!important;clip-path:none!important;min-height:100svh}
+  .site-header{transition:none!important}
 }
-.motion-paused .footer-reveal{height:auto}
-.motion-paused .footer-reveal__stage{position:relative;min-height:100svh;height:auto}
-.motion-paused .footer-reveal__surface{-webkit-clip-path:none!important;clip-path:none!important;min-height:100svh}
 @media print{
-  .footer-reveal{height:auto!important}
-  .footer-reveal__stage{position:relative!important;height:auto!important;overflow:visible}
-  .footer-reveal__surface{-webkit-clip-path:none!important;clip-path:none!important}
+  body{background:var(--paper)}
+  body > main{position:static}
+  .footer-reveal{height:auto!important;background:var(--ink)}
+  .footer-reveal__stage{position:relative!important;inset:auto;height:auto!important;overflow:visible}
+  .footer-reveal__surface{height:auto;min-height:400px}
 }

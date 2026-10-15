@@ -151,34 +151,24 @@
     setShowcaseMode();
   }
 
-  // Scroll-controlled bottom-to-top footer reveal. Native sticky pin keeps the
-  // inverted contact + footer on one full-height screen at the end of the page.
-  const immersiveFooter = document.querySelector('.footer-reveal');
-  if (immersiveFooter) {
-    const footerSurface = immersiveFooter.querySelector('.footer-reveal__surface');
-    let footerFrame = 0;
-    function paintImmersiveFooter() {
-      footerFrame = 0;
-      if (paused || reduced.matches || !CSS.supports('clip-path', 'inset(10% 0 0 0)')) {
-        footerSurface.style.removeProperty('--footer-wipe');
-        return;
-      }
-      const height = Math.max(1, immersiveFooter.querySelector('.footer-reveal__stage').getBoundingClientRect().height);
-      // The panel arrives from below the viewport, becoming fully visible
-      // exactly when its sticky position reaches the top.
-      const top = immersiveFooter.getBoundingClientRect().top;
-      const progress = Math.min(1, Math.max(0, (height - top) / height));
-      const inset = (1 - progress) * 16;
-      footerSurface.style.setProperty('--footer-wipe', inset.toFixed(3) + '%');
+  // Reveal footer from underneath: the main page scrolls away and the footer
+  // remains fixed in viewport position throughout. No manual scroll interception.
+  const finalPage = document.querySelector('body > main');
+  if (finalPage && document.querySelector('section.footer-reveal')) {
+    let footerHeaderFrame = 0;
+    function updateFooterHeader() {
+      footerHeaderFrame = 0;
+      const header = document.querySelector('.site-header');
+      const limit = header?.getBoundingClientRect().height || 80;
+      root.classList.toggle('footer-at-top', finalPage.getBoundingClientRect().bottom <= limit);
     }
-    function scheduleImmersiveFooter() {
-      if (!footerFrame) footerFrame = requestAnimationFrame(paintImmersiveFooter);
+    function scheduleFooterHeader() {
+      if (!footerHeaderFrame) footerHeaderFrame = requestAnimationFrame(updateFooterHeader);
     }
-    window.addEventListener('scroll', scheduleImmersiveFooter, {passive:true});
-    window.addEventListener('resize', scheduleImmersiveFooter, {passive:true});
-    window.addEventListener('pageshow', scheduleImmersiveFooter);
-    document.addEventListener('portfolio:motion', scheduleImmersiveFooter);
-    paintImmersiveFooter();
+    window.addEventListener('scroll', scheduleFooterHeader, {passive:true});
+    window.addEventListener('resize', scheduleFooterHeader, {passive:true});
+    window.addEventListener('pageshow', scheduleFooterHeader);
+    updateFooterHeader();
   }
 
   const header = document.querySelector('.site-header');
