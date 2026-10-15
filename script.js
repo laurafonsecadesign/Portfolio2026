@@ -151,6 +151,30 @@
     setShowcaseMode();
   }
 
+  // Dark contact footer expands from center in exact proportion to scrolling.
+  const darkFooter = document.querySelector('.footer-reveal');
+  if (darkFooter) {
+    let footerFrame = 0;
+    function paintFooter() {
+      footerFrame = 0;
+      if (paused || reduced.matches) {
+        darkFooter.style.setProperty('--reveal', 1);
+        return;
+      }
+      const travel = Math.max(1, darkFooter.offsetHeight - innerHeight);
+      const position = Math.max(0, Math.min(1, -darkFooter.getBoundingClientRect().top / travel));
+      darkFooter.style.setProperty('--reveal', position.toFixed(4));
+    }
+    function scheduleFooter() {
+      if (!footerFrame) footerFrame = requestAnimationFrame(paintFooter);
+    }
+    window.addEventListener('scroll', scheduleFooter, {passive:true});
+    window.addEventListener('resize', scheduleFooter, {passive:true});
+    document.addEventListener('portfolio:motion', scheduleFooter);
+    window.addEventListener('pageshow', scheduleFooter);
+    paintFooter();
+  }
+
   const header = document.querySelector('.site-header');
   let ticking = false;
   const updateHeader = () => { header?.classList.toggle('scrolled', scrollY > 30); ticking = false; };
