@@ -314,3 +314,26 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
     animation:none!important;
   }
 }
+
+
+/* Footer-only scroll wipe: preserves all existing layout, colors, copy and links.
+   The contact panel and existing footer reveal from bottom to top as they enter. */
+html.footer-scroll-reveal #contact,
+html.footer-scroll-reveal body > .footer {
+  -webkit-clip-path: inset(var(--footer-clip, 0%) 0 0 0);
+  clip-path: inset(var(--footer-clip, 0%) 0 0 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.footer-scroll-reveal #contact,
+  html.footer-scroll-reveal body > .footer {
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
+  }
+}
+@media print {
+  html.footer-scroll-reveal #contact,
+  html.footer-scroll-reveal body > .footer {
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
+  }
+}

@@ -151,6 +151,40 @@
     setShowcaseMode();
   }
 
+  // Footer-only scroll wipe — no reflow, redesign, drag control or autoplay.
+  const contactReveal = document.querySelector('#contact.contact');
+  const footerReveal = document.querySelector('body > footer.footer');
+  if (contactReveal && footerReveal &&
+      CSS.supports('clip-path', 'inset(50% 0 0 0)')) {
+    const footerParts = [contactReveal, footerReveal];
+    let footerRevealFrame = 0;
+    function paintFooterReveal() {
+      footerRevealFrame = 0;
+      const active = !paused && !reduced.matches;
+      root.classList.toggle('footer-scroll-reveal', active);
+      if (!active) {
+        footerParts.forEach(part => part.style.removeProperty('--footer-clip'));
+        return;
+      }
+      const viewport = Math.max(1, window.innerHeight);
+      footerParts.forEach(part => {
+        const rect = part.getBoundingClientRect();
+        // Full reveal at the end of each block, including the final page footer.
+        const distance = Math.max(1, Math.min(rect.height, viewport * .6));
+        const amount = Math.min(1, Math.max(0, (viewport - rect.top) / distance));
+        part.style.setProperty('--footer-clip', ((1 - amount) * 100).toFixed(3) + '%');
+      });
+    }
+    function queueFooterReveal() {
+      if (!footerRevealFrame) footerRevealFrame = requestAnimationFrame(paintFooterReveal);
+    }
+    window.addEventListener('scroll', queueFooterReveal, {passive:true});
+    window.addEventListener('resize', queueFooterReveal, {passive:true});
+    window.addEventListener('pageshow', queueFooterReveal);
+    document.addEventListener('portfolio:motion', queueFooterReveal);
+    paintFooterReveal();
+  }
+
   const header = document.querySelector('.site-header');
   let ticking = false;
   const updateHeader = () => { header?.classList.toggle('scrolled', scrollY > 30); ticking = false; };
