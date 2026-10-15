@@ -143,3 +143,53 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
  html.showcase-scrubbed .project-showcase__stage{position:static!important;height:auto!important;overflow:visible}
  html.showcase-scrubbed .project-showcase__panel{position:relative!important;clip-path:none!important;pointer-events:auto!important;height:500px}
 }
+
+
+/* About / editorial expanded accordion: numbered rows, spacious typography, circular + / −. */
+.about-details .accordion--editorial{padding-top:0;min-width:0}
+.about-details .accordion--editorial>details{border-bottom:1px solid rgba(38,38,38,.48);margin:0}
+.about-details .accordion--editorial>details:first-child{border-top:1px solid rgba(38,38,38,.48)}
+.about-details .accordion--editorial>details>summary{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:18px;align-items:center;padding:clamp(24px,2.8vw,39px) 0;font-size:inherit;letter-spacing:normal;cursor:pointer}
+.about-details .accordion--editorial>details>summary::-webkit-details-marker{display:none}
+.about-details .accordion--editorial .accordion-heading{display:flex;align-items:baseline;gap:clamp(17px,2.4vw,32px);min-width:0;color:var(--ink);font-size:inherit;transform:none!important;transition:none!important}
+.about-details .accordion--editorial .accordion-number{font-size:clamp(11px,1vw,13px);font-weight:500;letter-spacing:.055em;color:var(--muted);width:25px;flex:none;font-variant-numeric:tabular-nums}
+.about-details .accordion--editorial .accordion-title{display:block;font-size:clamp(31px,3.2vw,54px);font-weight:400;line-height:1.05;letter-spacing:-.065em;overflow-wrap:anywhere;color:var(--ink);transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.about-details .accordion--editorial>details>summary:hover .accordion-title{transform:translateX(5px)}
+.about-details .accordion--editorial .accordion-sign{width:42px;height:42px;border:1px solid rgba(38,38,38,.44);border-radius:50%;justify-self:end;position:relative;color:var(--ink);font-size:0;flex:none;transform:none!important;transition:background .35s ease,border-color .35s ease!important}
+.about-details .accordion--editorial .accordion-sign::before,.about-details .accordion--editorial .accordion-sign::after{content:"";position:absolute;top:50%;left:50%;background:currentColor;transform:translate(-50%,-50%);transition:transform .3s cubic-bezier(.22,1,.36,1),opacity .2s ease}
+.about-details .accordion--editorial .accordion-sign::before{width:15px;height:1.5px}
+.about-details .accordion--editorial .accordion-sign::after{width:1.5px;height:15px}
+.about-details .accordion--editorial>details[open] .accordion-sign::after,.about-details .accordion--editorial>details.is-expanded .accordion-sign::after{transform:translate(-50%,-50%) scaleY(0);opacity:0}
+.about-details .accordion--editorial>details>summary:hover .accordion-sign{background:#e7e7e7;border-color:var(--ink)}
+.about-details .accordion--editorial .detail-body{box-sizing:border-box;max-width:none;padding:0 8px clamp(34px,4vw,56px) clamp(42px,4.2vw,65px);font-size:clamp(14px,1.05vw,16px);line-height:1.65;color:var(--ink)}
+.about-details .accordion--editorial .detail-body .accordion-entry{padding:4px 0 0}
+.about-details .accordion--editorial .detail-body .accordion-entry+.accordion-entry{border-top:1px solid rgba(38,38,38,.16);margin-top:clamp(24px,3vw,36px);padding-top:clamp(24px,2.5vw,33px)}
+.about-details .accordion--editorial .detail-body h3{font-size:clamp(19px,1.7vw,26px);line-height:1.24;font-weight:500;letter-spacing:-.036em;margin:0 0 8px}
+.about-details .accordion--editorial .detail-body .accordion-entry p{font-size:clamp(14px,1.1vw,16px);line-height:1.45}
+.about-details .accordion--editorial .detail-body p.muted{margin-top:7px;font-size:12px;line-height:1.5;text-transform:uppercase;letter-spacing:.025em;color:var(--muted)}
+.about-details .accordion--editorial .detail-body ul{margin:18px 0 0;padding-left:19px;line-height:1.6}
+.about-details .accordion--editorial .detail-body li+li{margin-top:9px}
+.about-details .accordion--editorial .accordion-languages p{padding:15px 0;border-bottom:1px solid rgba(38,38,38,.15);font-size:clamp(15px,1.2vw,18px);line-height:1.45}
+.about-details .accordion--editorial .accordion-languages p:first-child{padding-top:4px}
+.about-details .accordion--editorial .accordion-languages p:last-child{border-bottom:0;padding-bottom:0}
+@media(max-width:700px){
+ .about-details .accordion--editorial>details>summary{grid-template-columns:minmax(0,1fr) 38px;gap:10px;padding:23px 0}
+ .about-details .accordion--editorial .accordion-heading{gap:12px}
+ .about-details .accordion--editorial .accordion-number{font-size:11px;width:24px}
+ .about-details .accordion--editorial .accordion-title{font-size:clamp(27px,7.5vw,39px);letter-spacing:-.06em}
+ .about-details .accordion--editorial .accordion-sign{width:36px;height:36px}
+ .about-details .accordion--editorial .detail-body{padding:0 2px 31px 36px;font-size:14px}
+ .about-details .accordion--editorial .detail-body h3{font-size:20px}
+ .about-details .accordion--editorial .detail-body .accordion-entry p{font-size:14px}
+ .about-details .accordion--editorial .detail-body li+li{margin-top:9px}
+ .about-details .accordion--editorial .accordion-languages p{font-size:15px}
+}
+@media(hover:none){.about-details .accordion--editorial>details>summary:hover .accordion-title{transform:none}}
+@media(prefers-reduced-motion:reduce){
+ .about-details .accordion--editorial .accordion-title,.about-details .accordion--editorial .accordion-sign,.about-details .accordion--editorial .accordion-sign::after{transition:none!important}
+ .about-details .accordion--editorial>details>summary:hover .accordion-title{transform:none}
+}
+@media print{
+ .about-details .accordion--editorial>details{break-inside:avoid}
+ .about-details .accordion--editorial>details>summary{padding:16px 0}
+}
