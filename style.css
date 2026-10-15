@@ -283,3 +283,34 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
 }
 .motion-paused .about-details [data-about-scroll]{opacity:1!important;transform:none!important;transition:none!important}
 @media print{.about-details [data-about-scroll]{opacity:1!important;transform:none!important}}
+
+
+/* About intro: no entrance/scroll animation on desktop; keep mobile scroll reveals. */
+@media(min-width:701px){
+  .about-details .about-intro,
+  .about-details .about-intro.reveal,
+  .about-details .about-intro.reveal.is-waiting{
+    opacity:1!important;
+    transform:none!important;
+    translate:none!important;
+    rotate:none!important;
+    transition:none!important;
+    animation:none!important;
+  }
+  .about-details .about-intro [data-about-scroll]{
+    opacity:1!important;
+    transform:none!important;
+    translate:none!important;
+    rotate:none!important;
+    scale:1!important;
+    transition:none!important;
+    animation:none!important;
+  }
+  .about-details .about-intro .portrait{
+    translate:none!important;
+    rotate:none!important;
+    transform:none!important;
+    transition:none!important;
+    animation:none!important;
+  }
+}
