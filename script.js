@@ -91,6 +91,59 @@
     syncReel();
   }
 
+  // Fullscreen Work showcase: each image vertically wipes over the previous one.
+  // CSS sticky pins one stage; CSS clip-path follows raw scroll with no easing.
+  const showcase = document.querySelector('.project-showcase');
+  if (showcase && CSS.supports('clip-path', 'inset(50% 0 0 0)')) {
+    const stage = showcase.querySelector('.project-showcase__stage');
+    const panels = [...showcase.querySelectorAll('.project-showcase__panel')];
+    const reduceShowcaseMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let showcaseFrame = 0, showcaseEnabled = false;
+    const clampShowcase = (n, min, max) => Math.max(min, Math.min(max, n));
+
+    function paintShowcase() {
+      showcaseFrame = 0;
+      if (!showcaseEnabled) return;
+      const viewportHeight = Math.max(1, stage.offsetHeight);
+      const progress = clampShowcase(-showcase.getBoundingClientRect().top / viewportHeight, 0, panels.length - 1);
+      const current = Math.floor(progress);
+      const fraction = progress - current;
+      panels.forEach((panel, index) => {
+        // 100% clipped = hidden; 0% clipped = full. The title wipes with its image.
+        const clipped = index === 0 ? 0 : clampShowcase((index - progress) * 100, 0, 100);
+        panel.style.clipPath = 'inset(' + clipped + '% 0 0 0)';
+        const visible = index === current || (index === current + 1 && fraction > 0.0001);
+        panel.classList.toggle('is-interactive', visible);
+        panel.setAttribute('aria-hidden', String(!visible));
+        const link = panel.querySelector('.project-showcase__link');
+        if (link) link.tabIndex = visible ? 0 : -1;
+      });
+    }
+    function scheduleShowcase() {
+      if (!showcaseEnabled || showcaseFrame) return;
+      showcaseFrame = requestAnimationFrame(paintShowcase);
+    }
+    function setShowcaseMode() {
+      showcaseEnabled = panels.length > 1 && !reduceShowcaseMotion.matches;
+      root.classList.toggle('showcase-scrubbed', showcaseEnabled);
+      showcase.style.setProperty('--showcase-count', panels.length);
+      if (!showcaseEnabled) {
+        cancelAnimationFrame(showcaseFrame); showcaseFrame = 0;
+        panels.forEach(panel => {
+          panel.style.removeProperty('clip-path');
+          panel.classList.remove('is-interactive');
+          panel.removeAttribute('aria-hidden');
+          panel.querySelector('.project-showcase__link')?.removeAttribute('tabindex');
+        });
+      } else paintShowcase();
+    }
+    window.addEventListener('scroll', scheduleShowcase, { passive: true });
+    window.addEventListener('resize', scheduleShowcase, { passive: true });
+    window.addEventListener('pageshow', scheduleShowcase);
+    reduceShowcaseMotion.addEventListener('change', setShowcaseMode);
+    setShowcaseMode();
+  }
+
   const header = document.querySelector('.site-header');
   let ticking = false;
   const updateHeader = () => { header?.classList.toggle('scrolled', scrollY > 30); ticking = false; };
@@ -529,7 +582,7 @@
     if(!pointerKnown){cursorX=pointerX;cursorY=pointerY;pointerKnown=true;}
     root.classList.add('cursor-enabled');cursor.classList.add('is-visible');
     const target=e.target.closest('a,button,summary');let label='';const es=root.lang==='es';
-    if(target?.matches('.project-card a')) label=es?'Ver':'View';
+    if(target?.matches('.project-card a, .project-showcase__link')) label=es?'Ver':'View';
     else if(target?.matches('[data-lightbox]')) label=es?'Ampliar':'Explore';
     else if(target?.matches('.download-button')) label=es?'Descargar':'Download';
     else if(target?.matches('.contact-title')) label=es?'Hablemos':'Say hello';

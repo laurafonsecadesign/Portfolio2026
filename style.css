@@ -102,3 +102,44 @@ html.motion-paused{scroll-behavior:auto}.motion-paused *,.motion-paused *::befor
 @media print{
   .mobile-hero{display:none!important}
 }
+
+
+/* Full-viewport project showcase: native sticky pin, scroll-scrubbed upward wipe. */
+.project-showcase.works.section{padding:0;margin:0;width:100%;max-width:none;position:relative;isolation:isolate;overflow:visible}
+.project-showcase__stage{width:100%;position:relative}
+.project-showcase__panel{position:relative;width:100%;height:100vh;height:100svh;overflow:hidden;background:#242424}
+.project-showcase__link{position:relative;display:grid;place-items:center;width:100%;height:100%;isolation:isolate;overflow:hidden;color:#fff;cursor:pointer}
+.project-showcase__image{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center}
+.project-showcase__shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.27) 0%,rgba(0,0,0,.36) 48%,rgba(0,0,0,.48) 100%);pointer-events:none}
+.project-showcase__center{position:relative;z-index:1;display:grid;place-items:center;width:100%;padding:0 clamp(20px,4vw,75px);pointer-events:none}
+.project-showcase__name{max-width:100%;color:#fff;text-transform:uppercase;text-align:center;text-wrap:balance;overflow-wrap:normal;font-size:clamp(56px,11vw,190px);font-weight:500;letter-spacing:-.075em;line-height:.94;text-shadow:0 2px 35px rgba(0,0,0,.22)}
+.project-showcase__name--long{font-size:clamp(46px,8vw,140px);letter-spacing:-.07em}
+.project-showcase__info{position:absolute;z-index:2;left:var(--gutter);bottom:clamp(24px,5vh,62px);display:flex;flex-direction:column;gap:9px;pointer-events:none;text-transform:uppercase}
+.project-showcase__index{font-size:12px;letter-spacing:.06em;opacity:.84}
+.project-showcase__category{font-size:clamp(12px,1.1vw,16px);letter-spacing:.015em}
+.project-showcase__action{position:absolute;z-index:2;right:var(--gutter);bottom:clamp(24px,5vh,62px);font-size:clamp(12px,1.1vw,16px);display:flex;align-items:center;gap:12px;pointer-events:none;text-transform:uppercase}
+.project-showcase__action>span{font-size:1.6em;line-height:.8}
+.project-showcase__link:focus-visible{outline:3px solid #fff;outline-offset:-10px;border-radius:0}
+@media(max-width:700px){
+ .project-showcase__name{font-size:clamp(48px,15vw,86px);letter-spacing:-.075em}
+ .project-showcase__name--long{font-size:clamp(40px,10.5vw,67px);letter-spacing:-.065em}
+ .project-showcase__center{padding-inline:16px}
+ .project-showcase__info{bottom:34px}
+ .project-showcase__action{bottom:34px;font-size:12px}
+ .project-showcase__category{font-size:12px;max-width:55vw}
+ .project-showcase__index{font-size:11px}
+}
+@media(max-width:390px){.project-showcase__action{font-size:10px;gap:4px}.project-showcase__category{font-size:11px}}
+/* An N-screen section gives the sticky stage N-1 screens of scrubbable scroll. */
+html.showcase-scrubbed{scroll-padding-top:0}
+html.showcase-scrubbed #about,html.showcase-scrubbed #contact{scroll-margin-top:90px}
+html.showcase-scrubbed .project-showcase.works.section{height:calc(var(--showcase-count,4) * 100vh);height:calc(var(--showcase-count,4) * 100svh)}
+html.showcase-scrubbed .project-showcase__stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+html.showcase-scrubbed .project-showcase__panel{position:absolute;inset:0;width:100%;height:100%;z-index:var(--panel-order);pointer-events:none;clip-path:inset(100% 0 0 0);transition:none!important;will-change:clip-path}
+html.showcase-scrubbed .project-showcase__panel:first-child{clip-path:inset(0 0 0 0)}
+html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:auto}
+@media print{
+ html.showcase-scrubbed .project-showcase.works.section{height:auto!important}
+ html.showcase-scrubbed .project-showcase__stage{position:static!important;height:auto!important;overflow:visible}
+ html.showcase-scrubbed .project-showcase__panel{position:relative!important;clip-path:none!important;pointer-events:auto!important;height:500px}
+}
