@@ -533,6 +533,12 @@
   const progress = document.querySelector('.scroll-progress');
   const logo = document.querySelector('.hero-logo');
   const portrait = document.querySelector('.portrait');
+  // About scroll-driven reveal elements: each responds proportionally to real scroll,
+  // with no timers and no forced scroll capture.
+  const aboutMotionTargets = [
+    ...document.querySelectorAll('.about-details .portrait, .about-details .bio, .about-details .download-button, .typecv-part__header, .typecv-entry, .typecv-tools li, .typecv-skills li, .typecv-language')
+  ];
+  aboutMotionTargets.forEach(element => element.setAttribute('data-about-scroll', ''));
   const cards = [...document.querySelectorAll('.project-visual')];
   const wide = window.matchMedia('(min-width:701px)');
   let motionFrame = 0;
@@ -543,6 +549,17 @@
     progress?.style.setProperty('--scroll-progress',clamp(scrollY/maxScroll,0,1));
     const enabled = !paused && !reduced.matches;
     root.classList.toggle('scroll-effects',enabled);
+    root.classList.toggle('about-scroll-motion',enabled && aboutMotionTargets.length > 0);
+    if (enabled) {
+      const viewport = Math.max(innerHeight, 1);
+      aboutMotionTargets.forEach(element => {
+        const box = element.getBoundingClientRect();
+        if (box.top > viewport * 1.3 || box.bottom < -viewport * .3) return;
+        const amount = clamp((viewport * .90 - box.top) / (viewport * .53), 0, 1);
+        element.style.setProperty('--about-reveal', amount.toFixed(4));
+      });
+    }
+
     if (!enabled) return;
     if (hero && logo) {
       const rect=hero.getBoundingClientRect(), amount=clamp(-rect.top/Math.max(rect.height,1),0,1);
