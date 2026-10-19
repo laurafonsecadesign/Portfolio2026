@@ -456,3 +456,40 @@ html.footer-at-top .site-header{
   .footer-reveal__stage{position:relative!important;inset:auto;height:auto!important;overflow:visible}
   .footer-reveal__surface{height:auto;min-height:400px}
 }
+
+
+/* Project case studies — editorial story blocks interleaved with the gallery. */
+.project-intro .project-description{max-width:none}
+.project-story{grid-column:1/-1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.65fr);gap:clamp(30px,7vw,120px);border-top:1px solid var(--ink);padding:clamp(28px,4vw,58px) 0 clamp(30px,4vw,62px);margin:clamp(25px,3vw,42px) 0}
+.project-story__heading{display:flex;align-items:flex-start;gap:clamp(12px,2vw,28px);min-width:0}
+.project-story__number{display:block;flex:none;color:var(--muted);font-size:clamp(11px,.95vw,13px);line-height:1.5;letter-spacing:.035em;font-variant-numeric:tabular-nums;padding-top:clamp(7px,.75vw,12px)}
+.project-story__title{margin:0;min-width:0;font-size:clamp(32px,4vw,68px);font-weight:500;letter-spacing:-.069em;line-height:.98;text-transform:uppercase;overflow-wrap:normal}
+.project-story__copy{max-width:750px;font-size:clamp(16px,1.4vw,20px);letter-spacing:-.01em;line-height:1.54}
+.project-story__copy p{line-height:inherit}
+.project-story__copy p+p{margin-top:clamp(16px,1.5vw,23px)}
+.project-intro .project-story--challenge{display:block;border-color:var(--line);margin:0;padding:clamp(19px,2vw,30px) 0 0}
+.project-intro .project-story--challenge .project-story__heading{margin-bottom:clamp(22px,2.6vw,35px)}
+.project-intro .project-story--challenge .project-story__title{font-size:clamp(32px,3.3vw,53px)}
+.project-intro .project-story--challenge .project-story__copy{font-size:clamp(16px,1.45vw,21px)}
+.project-gallery>.project-story{margin-block:clamp(34px,5vw,78px)}
+@media(max-width:900px){
+ .project-story{gap:25px;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
+ .project-story__title{font-size:clamp(30px,4.2vw,50px)}
+ .project-story__copy{font-size:16px}
+}
+@media(max-width:700px){
+ .project-story{grid-template-columns:1fr;gap:22px;padding:26px 0 12px;margin:25px 0}
+ .project-story__heading{gap:14px}
+ .project-story__number{font-size:11px;padding-top:6px}
+ .project-story__title{font-size:clamp(36px,9vw,60px)}
+ .project-story__copy{font-size:16px;line-height:1.52}
+ .project-story__copy p+p{margin-top:16px}
+ .project-intro .project-story--challenge{padding-top:21px}
+ .project-intro .project-story--challenge .project-story__heading{margin-bottom:20px}
+ .project-intro .project-story--challenge .project-story__title{font-size:clamp(34px,8.8vw,51px)}
+ .project-gallery>.project-story{margin-block:28px}
+}
+@media print{
+ .project-story{break-inside:avoid}
+ .project-story__title{font-size:30px}
+}
