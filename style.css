@@ -516,3 +516,16 @@ html.footer-at-top .site-header{
 .monk-gallery .gallery-link:hover img {transform:none!important}
 .monk-gallery>.monk-portrait-solo {width:min(100%,680px);justify-self:center}
 @media(max-width:700px){.monk-gallery>.monk-portrait-solo{width:100%}}
+
+/* MONK cover: retain the whole portrait on wide screens; softly fill the sides. */
+.project-showcase__panel[data-project-index="4"] .project-showcase__link{
+  background:#191513 url('assets/images/monk/00-interior-cover.webp') center/cover no-repeat;
+}
+.project-showcase__panel[data-project-index="4"] .project-showcase__link::before{
+  content:"";position:absolute;inset:0;
+  background:rgba(10,9,9,.4);
+  -webkit-backdrop-filter:blur(22px);
+  backdrop-filter:blur(22px);
+  pointer-events:none;
+}
+.project-showcase__panel[data-project-index="4"] .project-showcase__image{object-fit:contain}
