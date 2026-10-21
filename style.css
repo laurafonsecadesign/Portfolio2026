@@ -508,3 +508,11 @@ html.footer-at-top .site-header{
   text-transform:none;
   line-height:1.55;
 }
+
+/* MONK: show every photograph in its original proportions, including portraits. */
+.monk-gallery .gallery-link,
+.monk-gallery .gallery-link picture {aspect-ratio:auto!important;height:auto!important;overflow:visible}
+.monk-gallery .gallery-link img {display:block;width:100%;height:auto!important;max-height:none;object-fit:contain!important;transform:none!important}
+.monk-gallery .gallery-link:hover img {transform:none!important}
+.monk-gallery>.monk-portrait-solo {width:min(100%,680px);justify-self:center}
+@media(max-width:700px){.monk-gallery>.monk-portrait-solo{width:100%}}
