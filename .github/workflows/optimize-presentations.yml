@@ -1,0 +1,99 @@
+name: One-time PDF optimization for portfolio
+on:
+  push:
+    branches: [compress-portfolio-pdfs-2026]
+    paths:
+      - ".github/workflows/optimize-presentations.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  compress-presentations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PDF tooling
+        run: |
+          command -v gs >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ghostscript; }
+          python -m pip install --quiet pymupdf
+      - name: Compress and validate PDF presentations
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os, subprocess, tempfile
+          import fitz
+
+          files = [
+              Path("assets/documents/applaws-presentation.pdf"),
+              Path("assets/documents/monk - final presentation.pdf"),
+              Path("assets/documents/dicho-y-hecho-presentation.pdf"),
+              Path("assets/documents/palocleves-presentation.pdf"),
+          ]
+          total_before = total_after = 0
+          for src in files:
+              before = src.stat().st_size
+              total_before += before
+              fd, tmp_name = tempfile.mkstemp(suffix=".pdf")
+              os.close(fd)
+              out = Path(tmp_name)
+              try:
+                  args = [
+                      "gs", "-q", "-dNOPAUSE", "-dBATCH", "-sDEVICE=pdfwrite",
+                      "-dCompatibilityLevel=1.6", "-dDetectDuplicateImages=true",
+                      "-dCompressFonts=true", "-dSubsetFonts=true",
+                      "-dPDFSETTINGS=/ebook",
+                      "-dColorImageResolution=180", "-dGrayImageResolution=180",
+                      "-dMonoImageResolution=600",
+                      "-dJPEGQ=84", "-sOutputFile=" + str(out), str(src)
+                  ]
+                  subprocess.run(args, check=True, timeout=240)
+                  with fitz.open(src) as orig, fitz.open(out) as opt:
+                      assert len(orig) == len(opt), "Page count changed"
+                      for a,b in zip(orig,opt):
+                          assert abs(a.rect.width-b.rect.width)<0.1 and abs(a.rect.height-b.rect.height)<0.1, "Page dimensions changed"
+                          original_txt = "".join(a.get_text().split())
+                          newer_txt = "".join(b.get_text().split())
+                          if len(original_txt)>50:
+                              assert len(newer_txt)>=0.95*len(original_txt), "Too much text missing"
+                          assert len(b.get_links())>=len(a.get_links()), "Document links missing"
+                      samples = sorted(set([0,len(orig)//2,len(orig)-1]))
+                      differences=[]
+                      for page_num in samples:
+                          a=orig[page_num].get_pixmap(matrix=fitz.Matrix(0.8,0.8),alpha=False)
+                          b=opt[page_num].get_pixmap(matrix=fitz.Matrix(0.8,0.8),alpha=False)
+                          assert a.width==b.width and a.height==b.height,"Rendering dimensions changed"
+                          aa,bb=a.samples,b.samples
+                          difference=sum(abs(x-y) for x,y in zip(aa,bb))/len(aa)
+                          differences.append(difference)
+                      assert max(differences)<20.0, f"Unexpected visual change: {differences}"
+                  after = out.stat().st_size
+                  if after < before * 0.90:
+                      out.replace(src)
+                      result = "OPTIMIZED"
+                      total_after += after
+                  else:
+                      result = "KEPT ORIGINAL"
+                      total_after += before
+                  print(f"{result}: {src} {before/1e6:.2f} -> {src.stat().st_size/1e6:.2f} MB, diff max {max(differences):.2f}")
+              except Exception as err:
+                  print(f"KEPT ORIGINAL (safety check): {src} - {err}")
+                  total_after += before
+              finally:
+                  out.unlink(missing_ok=True)
+          print(f"TOTAL: {total_before/1e6:.2f} -> {total_after/1e6:.2f} MB")
+
+          PY
+      - name: Commit optimized PDFs to this branch
+        shell: bash
+        run: |
+          git add -- assets/documents/applaws-presentation.pdf "assets/documents/monk - final presentation.pdf" assets/documents/dicho-y-hecho-presentation.pdf assets/documents/palocleves-presentation.pdf
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Compress presentation PDFs preserving pages and links"
+            git push origin HEAD:compress-portfolio-pdfs-2026
+          else
+            echo "No PDF passed the size and quality checks."
+          fi
