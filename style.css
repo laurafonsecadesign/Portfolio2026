@@ -319,7 +319,7 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
 
 /* Inverse footer reveal: the page slides UP to uncover a footer that does not move.
    Only the final viewport is the reveal spacer; no sticky panel, clipping or scale. */
-body{background:var(--ink)}
+body{background:#83B7FF}
 body > main{
   position:relative;
   z-index:2;
@@ -348,8 +348,8 @@ body > main{
   display:flex;
   flex-direction:column;
   justify-content:space-between;
-  background:var(--ink);
-  color:var(--paper);
+  background:#83B7FF;
+  color:#262626;
   -webkit-clip-path:none;
   clip-path:none;
   opacity:1;
@@ -368,14 +368,14 @@ body > main{
   padding:clamp(100px,12vh,165px) var(--gutter) clamp(30px,5vh,60px);
 }
 .footer-reveal .eyebrow{
-  color:var(--paper);
+  color:#262626;
   opacity:.75;
   margin-bottom:clamp(24px,3.5vh,50px);
 }
 .footer-reveal .contact-title{
   display:block;
   width:100%;
-  color:var(--paper);
+  color:#262626;
 }
 /* Restore the ORIGINAL Switzer heading sizing, weight and tracking. Only invert the color. */
 .footer-reveal .contact-title h2{
@@ -385,7 +385,7 @@ body > main{
   font-size:clamp(90px,18.4vw,320px);
   letter-spacing:-.075em;
   line-height:.82;
-  color:var(--paper);
+  color:#262626;
   text-transform:none;
   margin:0;
   max-width:100%;
@@ -400,7 +400,7 @@ html[lang=es] .footer-reveal .contact-title h2{
   flex:0 0 auto;
   margin:0;
   padding:18px var(--gutter) max(26px,env(safe-area-inset-bottom));
-  color:var(--paper);
+  color:#262626;
 }
 .footer-reveal .socials{
   color:inherit;
@@ -409,12 +409,12 @@ html[lang=es] .footer-reveal .contact-title h2{
 }
 .footer-reveal .socials a{color:inherit}
 .footer-reveal .footer-bottom{
-  border-color:rgba(244,244,244,.45);
+  border-color:rgba(38,38,38,.45);
   margin-top:clamp(18px,3vh,36px);
   padding-top:18px;
   color:inherit;
 }
-.footer-reveal a:focus-visible{outline-color:var(--paper)}
+.footer-reveal a:focus-visible{outline-color:#262626}
 /* Let the fixed header disappear only after the footer has nearly filled the screen. */
 html.footer-at-top .site-header{
   transform:translateY(-110%);
@@ -452,7 +452,7 @@ html.footer-at-top .site-header{
 @media print{
   body{background:var(--paper)}
   body > main{position:static}
-  .footer-reveal{height:auto!important;background:var(--ink)}
+  .footer-reveal{height:auto!important;background:#83B7FF}
   .footer-reveal__stage{position:relative!important;inset:auto;height:auto!important;overflow:visible}
   .footer-reveal__surface{height:auto;min-height:400px}
 }
