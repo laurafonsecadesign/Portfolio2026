@@ -319,7 +319,7 @@ html.showcase-scrubbed .project-showcase__panel.is-interactive{pointer-events:au
 
 /* Inverse footer reveal: the page slides UP to uncover a footer that does not move.
    Only the final viewport is the reveal spacer; no sticky panel, clipping or scale. */
-body{background:#83B7FF}
+body{background:#B1D2FF}
 body > main{
   position:relative;
   z-index:2;
@@ -348,7 +348,7 @@ body > main{
   display:flex;
   flex-direction:column;
   justify-content:space-between;
-  background:#83B7FF;
+  background:#B1D2FF;
   color:#262626;
   -webkit-clip-path:none;
   clip-path:none;
@@ -452,7 +452,7 @@ html.footer-at-top .site-header{
 @media print{
   body{background:var(--paper)}
   body > main{position:static}
-  .footer-reveal{height:auto!important;background:#83B7FF}
+  .footer-reveal{height:auto!important;background:#B1D2FF}
   .footer-reveal__stage{position:relative!important;inset:auto;height:auto!important;overflow:visible}
   .footer-reveal__surface{height:auto;min-height:400px}
 }
