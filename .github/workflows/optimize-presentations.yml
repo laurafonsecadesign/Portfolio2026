@@ -16,84 +16,73 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install PDF tooling
-        run: |
-          command -v gs >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ghostscript; }
-          python -m pip install --quiet pymupdf
-      - name: Compress and validate PDF presentations
+        run: python -m pip install --quiet pymupdf
+      - name: Try image-only compression with PDF integrity checks
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          import os, subprocess, tempfile
-          import fitz
+          import tempfile,os,fitz,subprocess
 
-          files = [
-              Path("assets/documents/applaws-presentation.pdf"),
-              Path("assets/documents/monk - final presentation.pdf"),
-              Path("assets/documents/dicho-y-hecho-presentation.pdf"),
-              Path("assets/documents/palocleves-presentation.pdf"),
+          paths=[
+            Path("assets/documents/applaws-presentation.pdf"),
+            Path("assets/documents/monk - final presentation.pdf"),
+            Path("assets/documents/palocleves-presentation.pdf"),
           ]
-          total_before = total_after = 0
-          for src in files:
-              before = src.stat().st_size
-              total_before += before
-              fd, tmp_name = tempfile.mkstemp(suffix=".pdf")
-              os.close(fd)
-              out = Path(tmp_name)
-              try:
-                  args = [
-                      "gs", "-q", "-dNOPAUSE", "-dBATCH", "-sDEVICE=pdfwrite",
-                      "-dCompatibilityLevel=1.6", "-dDetectDuplicateImages=true",
-                      "-dCompressFonts=true", "-dSubsetFonts=true",
-                      "-dPDFSETTINGS=/ebook",
-                      "-dColorImageResolution=180", "-dGrayImageResolution=180",
-                      "-dMonoImageResolution=600",
-                      "-dJPEGQ=84", "-sOutputFile=" + str(out), str(src)
-                  ]
-                  subprocess.run(args, check=True, timeout=240)
-                  with fitz.open(src) as orig, fitz.open(out) as opt:
-                      assert len(orig) == len(opt), "Page count changed"
-                      for a,b in zip(orig,opt):
-                          assert abs(a.rect.width-b.rect.width)<0.1 and abs(a.rect.height-b.rect.height)<0.1, "Page dimensions changed"
-                          original_txt = "".join(a.get_text().split())
-                          newer_txt = "".join(b.get_text().split())
-                          if len(original_txt)>50:
-                              assert len(newer_txt)>=0.95*len(original_txt), "Too much text missing"
-                          assert len(b.get_links())>=len(a.get_links()), "Document links missing"
-                      samples = sorted(set([0,len(orig)//2,len(orig)-1]))
-                      differences=[]
-                      for page_num in samples:
-                          a=orig[page_num].get_pixmap(matrix=fitz.Matrix(0.8,0.8),alpha=False)
-                          b=opt[page_num].get_pixmap(matrix=fitz.Matrix(0.8,0.8),alpha=False)
-                          assert a.width==b.width and a.height==b.height,"Rendering dimensions changed"
-                          aa,bb=a.samples,b.samples
-                          difference=sum(abs(x-y) for x,y in zip(aa,bb))/len(aa)
-                          differences.append(difference)
-                      assert max(differences)<20.0, f"Unexpected visual change: {differences}"
-                  after = out.stat().st_size
-                  if after < before * 0.90:
-                      out.replace(src)
-                      result = "OPTIMIZED"
-                      total_after += after
-                  else:
-                      result = "KEPT ORIGINAL"
-                      total_after += before
-                  print(f"{result}: {src} {before/1e6:.2f} -> {src.stat().st_size/1e6:.2f} MB, diff max {max(differences):.2f}")
-              except Exception as err:
-                  print(f"KEPT ORIGINAL (safety check): {src} - {err}")
-                  total_after += before
-              finally:
-                  out.unlink(missing_ok=True)
-          print(f"TOTAL: {total_before/1e6:.2f} -> {total_after/1e6:.2f} MB")
+          def verify(source,target):
+              with fitz.open(source) as old,fitz.open(target) as new:
+                  if len(old)!=len(new): return (False,"page count")
+                  for a,b in zip(old,new):
+                      if abs(a.rect.width-b.rect.width)>0.1 or abs(a.rect.height-b.rect.height)>0.1: return (False,"page size")
+                      atext="".join(a.get_text().split())
+                      btext="".join(b.get_text().split())
+                      if len(atext)>20 and len(btext)<.99*len(atext): return (False,"text lost")
+                      if len(b.get_links())<len(a.get_links()): return (False,"links lost")
+                  differences=[]
+                  for n in sorted({0,len(old)//2,len(old)-1}):
+                      a=old[n].get_pixmap(matrix=fitz.Matrix(0.9,0.9),alpha=False)
+                      b=new[n].get_pixmap(matrix=fitz.Matrix(0.9,0.9),alpha=False)
+                      if (a.width,a.height)!=(b.width,b.height):return (False,"render size")
+                      samples_a,samples_b=a.samples,b.samples
+                      mae=sum(abs(x-y) for x,y in zip(samples_a,samples_b))/len(samples_a)
+                      differences.append(mae)
+                  if max(differences)>6:return(False,f"visual difference {max(differences):.2f}")
+                  return (True,f"visual max {max(differences):.2f}")
+          for path in paths:
+              original_size=path.stat().st_size
+              best_file=None
+              best_size=original_size
+              best_method="original"
+              candidates=[]
+              for dpi,quality in [(160,82),(140,80)]:
+                  fd,tmp_name=tempfile.mkstemp(suffix=".pdf")
+                  os.close(fd)
+                  candidate=Path(tmp_name)
+                  candidates.append(candidate)
+                  try:
+                      with fitz.open(path) as doc:
+                          doc.rewrite_images(dpi_threshold=190,dpi_target=dpi,quality=quality)
+                          doc.save(candidate,garbage=4,deflate=True,clean=True)
+                      size=candidate.stat().st_size
+                      good,description=verify(path,candidate)
+                      print(f"{path.name}: PyMuPDF dpi={dpi}, quality={quality}, {size/1e6:.2f} MB, valid={good}, {description}",flush=True)
+                      if good and size<best_size*.95:
+                          best_file,best_size,best_method=candidate,size,f"PyMuPDF dpi={dpi}"
+                  except Exception as e:
+                      print(f"Skipped candidate for {path.name}: {e}",flush=True)
+              if best_file:
+                  best_file.replace(path)
+              for candidate in candidates:
+                  candidate.unlink(missing_ok=True)
+              print(f"SELECTED: {path.name} {original_size/1e6:.2f} -> {path.stat().st_size/1e6:.2f} MB ({best_method})",flush=True)
 
           PY
-      - name: Commit optimized PDFs to this branch
-        shell: bash
+      - name: Commit optimized PDFs
         run: |
-          git add -- assets/documents/applaws-presentation.pdf "assets/documents/monk - final presentation.pdf" assets/documents/dicho-y-hecho-presentation.pdf assets/documents/palocleves-presentation.pdf
+          git add -- assets/documents/applaws-presentation.pdf "assets/documents/monk - final presentation.pdf" assets/documents/palocleves-presentation.pdf
           if ! git diff --cached --quiet; then
-            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Compress presentation PDFs preserving pages and links"
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Optimize more portfolio PDFs without changing text"
             git push origin HEAD:compress-portfolio-pdfs-2026
           else
-            echo "No PDF passed the size and quality checks."
+            echo "No further PDFs met quality and size checks."
           fi
