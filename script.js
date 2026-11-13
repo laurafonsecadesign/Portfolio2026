@@ -3,22 +3,16 @@
   'use strict';
   const root = document.documentElement;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const reducedData = window.matchMedia('(prefers-reduced-data: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  // Keep visual effects, but spare data for visitors on Save-Data / slower networks.
-  const slowConnection = () => reducedData.matches || Boolean(connection && (
-    connection.saveData ||
-    /^(slow-2g|2g|3g)$/.test(connection.effectiveType || '') ||
-    (typeof connection.downlink === 'number' && connection.downlink < 1.5)
-  ));
+  // Always show the portfolio effects when motion is allowed.
+  // They use lightweight WebP thumbnails, not large gallery files.
   let paused = reduced.matches;
   const animations = new Set();
   const animatedImages = [...document.querySelectorAll('img[data-animated]')];
   const visibleAnimated = new WeakSet();
   let animatedObserver = null;
   function syncAnimatedImage(img) {
-    const shouldAnimate = !paused && !slowConnection() && (!animatedObserver || visibleAnimated.has(img));
+    const shouldAnimate = !paused && (!animatedObserver || visibleAnimated.has(img));
     const src = shouldAnimate ? img.dataset.animated : img.dataset.still;
     if (src && img.getAttribute('src') !== src) img.setAttribute('src', src);
   }
@@ -41,12 +35,6 @@
   }
   applyMotion();
   reduced.addEventListener('change', e => { paused = e.matches; applyMotion(); });
-  const onNetworkChange = () => {
-    applyMotion();
-    document.dispatchEvent(new Event('portfolio:network'));
-  };
-  connection?.addEventListener?.('change', onNetworkChange);
-  reducedData.addEventListener?.('change', onNetworkChange);
 
   // The language switch keeps the current section on the equivalent static page.
   const language = document.querySelector('.language-switch');
@@ -76,14 +64,14 @@
     const sources = (reel.dataset.images || '').split('|').filter(Boolean);
     const mobileScreen = window.matchMedia('(max-width:700px)');
     let currentImage = 0, visibleSlide = 0, reelTimer = null, reelGeneration = 0, heroInView = true;
-    const canPlayReel = () => mobileScreen.matches && !paused && !slowConnection() && !document.hidden && heroInView && sources.length > 1;
+    const canPlayReel = () => mobileScreen.matches && !paused && !document.hidden && heroInView && sources.length > 1;
 
     function stopReel() {
       if (reelTimer !== null) { clearTimeout(reelTimer); reelTimer = null; }
       reelGeneration++;
     }
     function queueReel() {
-      if (canPlayReel() && reelTimer === null) reelTimer = setTimeout(advanceReel, 1800);
+      if (canPlayReel() && reelTimer === null) reelTimer = setTimeout(advanceReel, 480);
     }
     function advanceReel() {
       reelTimer = null;
@@ -120,7 +108,6 @@
     mobileScreen.addEventListener('change', syncReel);
     document.addEventListener('visibilitychange', syncReel);
     document.addEventListener('portfolio:motion', syncReel);
-    document.addEventListener('portfolio:network', syncReel);
     syncReel();
   }
 
@@ -240,13 +227,13 @@
     let latest = null;
     let imageIndex = 0;
     let preloadedCount = 0;
-    const canTrail = () => !paused && !reduced.matches && !slowConnection() && finePointer.matches && !document.hidden;
+    const canTrail = () => !paused && !reduced.matches && finePointer.matches && !document.hidden;
 
     function preloadTrail() {
       if (!sources.length || !canTrail()) return;
-      // Never fetch the full 20-image collection on pointer entry.
-      // Load only the next one or two images as the visitor interacts.
-      const target = Math.min(sources.length, imageIndex + 2);
+      // Prefetch a small buffer of lightweight thumbnails so the cursor stays fluid.
+      // Keep the rest deferred until the visitor actually interacts.
+      const target = Math.min(sources.length, imageIndex + 6);
       while (preloadedCount < target) {
         const img = new Image();
         img.decoding = 'async';
@@ -376,7 +363,6 @@
       latest = null; // Let the existing images fade out naturally.
     });
     document.addEventListener('portfolio:motion', () => { if (!canTrail()) clearTrail(); });
-    document.addEventListener('portfolio:network', () => { if (!canTrail()) clearTrail(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) clearTrail(); });
     finePointer.addEventListener('change', () => { if (!canTrail()) clearTrail(); });
   }
@@ -391,7 +377,7 @@
     function show(index) {
       current = (index + gallery.length) % gallery.length;
       const source = gallery[current].querySelector('img');
-      image.src = (paused || slowConnection()) && source.dataset.still ? source.dataset.still : gallery[current].href;
+      image.src = paused && source.dataset.still ? source.dataset.still : gallery[current].href;
       image.alt = source.alt; count.textContent = `${current+1} / ${gallery.length}`;
     }
     gallery.forEach((link,index) => link.addEventListener('click', e => {
