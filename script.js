@@ -3,18 +3,50 @@
   'use strict';
   const root = document.documentElement;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const reducedData = window.matchMedia('(prefers-reduced-data: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-  // Animations run automatically, except when the visitor requests reduced motion.
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  // Keep visual effects, but spare data for visitors on Save-Data / slower networks.
+  const slowConnection = () => reducedData.matches || Boolean(connection && (
+    connection.saveData ||
+    /^(slow-2g|2g|3g)$/.test(connection.effectiveType || '') ||
+    (typeof connection.downlink === 'number' && connection.downlink < 1.5)
+  ));
   let paused = reduced.matches;
   const animations = new Set();
+  const animatedImages = [...document.querySelectorAll('img[data-animated]')];
+  const visibleAnimated = new WeakSet();
+  let animatedObserver = null;
+  function syncAnimatedImage(img) {
+    const shouldAnimate = !paused && !slowConnection() && (!animatedObserver || visibleAnimated.has(img));
+    const src = shouldAnimate ? img.dataset.animated : img.dataset.still;
+    if (src && img.getAttribute('src') !== src) img.setAttribute('src', src);
+  }
+  // Animated WebPs only download when the visitor approaches them.
+  if ('IntersectionObserver' in window && animatedImages.length) {
+    animatedObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) visibleAnimated.add(entry.target);
+        else visibleAnimated.delete(entry.target);
+        syncAnimatedImage(entry.target);
+      });
+    }, { rootMargin: '200px 0px' });
+    animatedImages.forEach(img => animatedObserver.observe(img));
+  }
   function applyMotion() {
     root.classList.toggle('motion-paused', paused);
     document.dispatchEvent(new Event('portfolio:motion'));
-    document.querySelectorAll('img[data-animated]').forEach(img => { img.src = paused ? img.dataset.still : img.dataset.animated; });
+    animatedImages.forEach(syncAnimatedImage);
     if (paused) { animations.forEach(a => a.cancel()); animations.clear(); }
   }
   applyMotion();
   reduced.addEventListener('change', e => { paused = e.matches; applyMotion(); });
+  const onNetworkChange = () => {
+    applyMotion();
+    document.dispatchEvent(new Event('portfolio:network'));
+  };
+  connection?.addEventListener?.('change', onNetworkChange);
+  reducedData.addEventListener?.('change', onNetworkChange);
 
   // The language switch keeps the current section on the equivalent static page.
   const language = document.querySelector('.language-switch');
@@ -44,14 +76,14 @@
     const sources = (reel.dataset.images || '').split('|').filter(Boolean);
     const mobileScreen = window.matchMedia('(max-width:700px)');
     let currentImage = 0, visibleSlide = 0, reelTimer = null, reelGeneration = 0, heroInView = true;
-    const canPlayReel = () => mobileScreen.matches && !paused && !document.hidden && heroInView && sources.length > 1;
+    const canPlayReel = () => mobileScreen.matches && !paused && !slowConnection() && !document.hidden && heroInView && sources.length > 1;
 
     function stopReel() {
       if (reelTimer !== null) { clearTimeout(reelTimer); reelTimer = null; }
       reelGeneration++;
     }
     function queueReel() {
-      if (canPlayReel() && reelTimer === null) reelTimer = setTimeout(advanceReel, 480);
+      if (canPlayReel() && reelTimer === null) reelTimer = setTimeout(advanceReel, 1800);
     }
     function advanceReel() {
       reelTimer = null;
@@ -88,6 +120,7 @@
     mobileScreen.addEventListener('change', syncReel);
     document.addEventListener('visibilitychange', syncReel);
     document.addEventListener('portfolio:motion', syncReel);
+    document.addEventListener('portfolio:network', syncReel);
     syncReel();
   }
 
@@ -206,13 +239,19 @@
     let lastSpawn = null;
     let latest = null;
     let imageIndex = 0;
-    let cacheReady = false;
-    const canTrail = () => !paused && !reduced.matches && finePointer.matches && !document.hidden;
+    let preloadedCount = 0;
+    const canTrail = () => !paused && !reduced.matches && !slowConnection() && finePointer.matches && !document.hidden;
 
     function preloadTrail() {
-      if (cacheReady || !sources.length || !canTrail()) return;
-      cacheReady = true;
-      sources.forEach(src => { const img = new Image(); img.src = src; });
+      if (!sources.length || !canTrail()) return;
+      // Never fetch the full 20-image collection on pointer entry.
+      // Load only the next one or two images as the visitor interacts.
+      const target = Math.min(sources.length, imageIndex + 2);
+      while (preloadedCount < target) {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = sources[preloadedCount++];
+      }
     }
 
     function clearTrail() {
@@ -337,6 +376,7 @@
       latest = null; // Let the existing images fade out naturally.
     });
     document.addEventListener('portfolio:motion', () => { if (!canTrail()) clearTrail(); });
+    document.addEventListener('portfolio:network', () => { if (!canTrail()) clearTrail(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) clearTrail(); });
     finePointer.addEventListener('change', () => { if (!canTrail()) clearTrail(); });
   }
@@ -351,7 +391,7 @@
     function show(index) {
       current = (index + gallery.length) % gallery.length;
       const source = gallery[current].querySelector('img');
-      image.src = paused && source.dataset.still ? source.dataset.still : gallery[current].href;
+      image.src = (paused || slowConnection()) && source.dataset.still ? source.dataset.still : gallery[current].href;
       image.alt = source.alt; count.textContent = `${current+1} / ${gallery.length}`;
     }
     gallery.forEach((link,index) => link.addEventListener('click', e => {
