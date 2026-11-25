@@ -581,7 +581,7 @@
   // About scroll-driven reveal elements: each responds proportionally to real scroll,
   // with no timers and no forced scroll capture.
   const aboutMotionTargets = [
-    ...document.querySelectorAll('.about-details .portrait, .about-details .bio, .about-details .download-button, .typecv-part__header, .typecv-entry, .typecv-tools li, .typecv-skills li, .typecv-language')
+    ...document.querySelectorAll('.about-details .portrait, .about-details .bio, .about-details .download-button, .typecv-part__header, .typecv-entry, .typecv-tools li, .typecv-skills li, .typecv-technical__group, .typecv-language')
   ];
   aboutMotionTargets.forEach(element => element.setAttribute('data-about-scroll', ''));
   const cards = [...document.querySelectorAll('.project-visual')];
